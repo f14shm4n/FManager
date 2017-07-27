@@ -1,0 +1,309 @@
+@import "vars.scss";
+/* Fonts */
+@font-face {
+    font-family: "Segoe UI";
+    src: url("../fonts/segoeui.ttf");
+}
+
+@font-face {
+    font-family: "Segoe UI Semibold";
+    src: url("../fonts/seguisb.ttf");
+}
+
+@font-face {
+    font-family: "Segoe MDL2 Assets";
+    src: url("../fonts/segmdl2.ttf");
+}
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+/* Base  */
+html, body, .ui-container {
+    height: 100%;
+}
+
+body {
+    background: #ffffff;
+    margin: 0px;
+    font-family: 'Segoe UI Semibold';
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* UI */
+.ui-container {
+    background-color: $backgroundColor;
+    border-top: 3px solid $toolboxBorderColor;
+    display: flex;
+    position: relative;
+    flex-direction: column;
+
+    .ui-content-panel {
+        display: flex;
+        position: relative;
+        flex: 1;
+
+        .ui-file-struct-panel {
+            width: 100%;
+            height: 100%;
+            display: inline-block;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .ui-file-action-panel {
+            height: 100%;
+            width: 200px;
+            display: inline-block;
+            background-color: darken($backgroundColor, 10%);
+            border-right: 2px solid $toolboxBorderColor;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+
+            .ui-logo-button {
+                height: 48px;
+                background-color: $toolboxBorderColor;
+                text-align: center;
+                font-size: 20px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                cursor: pointer;
+                transition: all linear .1s;
+
+                & span::before {
+                    font-family: 'Segoe MDL2 Assets';
+                    content: "\E26C";
+                    font-size: 14px;
+                    margin-right: 5px;
+                }
+            }
+
+            .ui-logo-button:hover {
+                background-color: darken($toolboxBorderColor, 10%);
+                transition: all linear .1s;
+            }
+
+            .ui-action-buttons-panel {
+                display: block;
+                padding: 5px;
+            }
+        }
+    }
+
+    .ui-file-struct-item {
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: all linear .25s;
+
+        .ui-item-check,
+        .ui-item-icon,
+        .ui-item-name {
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .ui-item-check {
+            cursor: pointer;
+            font-family: 'Segoe MDL2 Assets';
+            font-style: normal;
+            font-size: 16px;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .ui-item-check:after {
+            content: "\E739";
+        }
+
+        .ui-item-check.checked:after {
+            content: "\E73A";
+        }
+    }
+
+    .ui-file-struct-item:nth-child(even) {
+        background-color: darken($backgroundColor, 6%);
+    }
+
+    .ui-file-struct-item:nth-child(odd) {
+        background-color: darken($backgroundColor, 3%);
+    }
+
+    .ui-file-struct-item:hover {
+        transition: all linear .25s;
+        background-color: $hoverColor;
+        color: white;
+    }
+}
+
+/* Buttons */
+
+.ui-btn {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 5px;
+    position: relative;
+    display: inline-block;
+    color: $btn_default_color2;
+    background-color: $btn_default_bg_color;
+    border: 1px solid $btn_default_border_color;
+    border-radius: 3px;
+    transition: all linear .1s;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-align: center;
+    font-family: segoe ui;
+    font-size: 14px;
+}
+
+.ui-btn:hover {
+    background-color: darken($btn_default_bg_color, 10%);
+    border: 1px solid darken($btn_default_border_color, 10%);
+    transition: all linear .1s;
+}
+
+.ui-btn:active {
+    box-shadow: inset 0 0 4px 2px rgba(0, 0, 0, 0.30);
+}
+
+.ui-action-btn {
+    margin: 5px 0px;
+    width: 100%;
+    color: $btn_default_color2;
+}
+
+.ui-action-btn:hover {
+    background-color: darken($btn_default_bg_color, 10%);
+    border: 1px solid darken($btn_default_border_color, 10%);
+    transition: all linear .1s;
+}
+
+.ui-action-btn.btn-done {
+    background-color: $btn_done_bg_color;
+    border: 1px solid $btn_done_border_color;
+    color: white;
+}
+
+.ui-action-btn.btn-done:hover {
+    background-color: darken($btn_done_bg_color, 20%);
+    border: 1px solid darken($btn_done_border_color, 20%);
+}
+
+.ui-action-btn.btn-upload {
+    background-color: $btn_upload_bg_color;
+    border: 1px solid $btn_upload_border_color;
+    color: white;
+}
+
+.ui-action-btn.btn-upload:hover {
+    background-color: lighten($btn_upload_bg_color, 10%);
+    border: 1px solid lighten($btn_upload_border_color, 10%);
+}
+
+.ui-action-btn:active {
+    box-shadow: inset 0 0 4px 2px rgba(0, 0, 0, 0.30);
+}
+
+/* Textboxes */
+.ui-textbox {
+    display: block;
+    padding: 5px 10px;
+    margin: 5px;
+    width: 100%;
+}
+
+/* Popup */
+
+.ui-popup-container {
+    position: absolute;
+    background-color: $popup_container_bg_color;
+    z-index: 1001;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .ui-popup {
+        width: auto;
+        margin: 10px;
+
+        .container {
+            border: 1px solid $popup_default_border_color;
+        }
+    }
+
+    .ui-popup,
+    .ui-popup-header,
+    .ui-popup-body,
+    .ui-popup-footer {
+        display: block;
+        position: relative;
+        padding: 10px;
+        color: white;
+    }
+
+    .ui-popup-header,
+    .ui-popup-footer {
+        background-color: $popup_default_header_color;
+    }
+
+    .ui-popup-body {
+        background-color: $popup_default_body_color;
+    }
+
+    .ui-popup-footer {
+        text-align: right;
+    }
+
+    @media(min-width: 768px) {
+        .ui-popup {
+            width: 600px;
+            margin: 30px auto;
+        }
+    }
+}
+
+/* Segoe MDL2 Assets Icons */
+[class^="mdl2-"], [class*="mdl2-"] {
+    font-family: 'Segoe MDL2 Assets';
+    font-style: normal;
+    font-size: 16px;
+    display: inline-block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+.mdl2-folder::before {
+    content: "\e8B7";
+}
+
+.mdl2-file::before {
+    content: "\E7C3";
+}
+
+.mdl2-rename::before {
+    content: "\E8AC";
+}
+
+.mdl2-delete::before {
+    content: "\E74D";
+}
+
+.mdl2-more::before {
+    content: "\E712";
+}

@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "tsc",
+            "type": "typescript",
+            "tsconfig": "tsconfig.json",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "taskName": "gulp-tasks",
+            "type": "shell",
+            "command": "./gulp-tasks.cmd",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}

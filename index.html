@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="dist/css/styles.css" />
+
+    <script src="node_modules/jquery/dist/jquery.js"></script>
+
+    <script src="utils.min.js"></script>
+    <script src="dist/js/app.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var settings = {
+            IS_TEST: true,
+            DEBUG: true,
+            rootFolder: 'C:\\',
+            selectCallback: undefined,
+            actionRequest: 'action/url',
+            uploadRequest: 'upload/url',
+            xhrBeforeSend: xhr => {
+                var token = $('input[name=__RequestVerificationToken]');
+                if (token) {
+                    xhr.setRequestHeader('RequestVerificationToken', token.val());
+                }
+            }
+        };
+
+        new FManagerTest(settings);
+
+        //f14fm.init(settings);
+        // test only
+        //f14fm.currentFolderPath = 'C:\\';
+        //f14fm.renderFileStruct(folders, files);
+    </script>
+</body>
+
+</html>
