@@ -1,38 +1,61 @@
 namespace f14.Core {
 
-    export var L10NPrefix = 'f14fm';
-    export var Title = 'FManager';
+    export class Configuration {
+        rootFolder: string;
+        actionRequest: string;
+        uploadRequest: string;
+        xhrBeforeSend: (xhr: XMLHttpRequest) => void;
+        selectCallback: (selectedObjects: string[]) => void;
+        dataService: Data.IDataService;
+        actionButtons: Models.ActionButtonInfo[] = [];
+        allowShortcuts: false;
+        DEBUG: boolean = false;
+    }
 
-    export var currentFolderPath = undefined;
+    export var L10NPrefix: string = 'f14fm';
+    export var Title: string = 'FManager';
+    export var TitleShort: string = 'FM';
 
-    export var Config = {
-        rootFolder: undefined,
-        actionRequest: undefined,
-        uploadRequest: undefined,
-        xhrBeforeSend: (xhr: XMLHttpRequest) => { },
-        selectCallback: undefined,
-        DEBUG: false,
-        IS_TEST: false,
-        test_folders: undefined,
-        test_files: undefined
-    };
+    export var Config: Configuration = new Configuration();
+    export var AppBuffer: Memory.AppBuffer = new Memory.AppBuffer();
 
-    export function Configure(settings): void {
+    var shortcutsObjects: IStringMap<UI.IShortcutCommand> = {};
+
+    export function Configure(settings: Configuration): void {
         if (settings) {
             $.extend(true, Config, settings);
         }
         CheckRequiredValues();
+
+        if (Config.allowShortcuts) {
+            // TODO: Shorcuts
+            window.addEventListener('keydown', e => {
+                let cmd = FindCommandForShortcut([]);
+                if (cmd) {
+                    cmd.Execute();
+                }
+                e.preventDefault();
+            }, false);
+        }
+    }
+
+    export function RegisterShortcut(cmd: UI.IShortcutCommand): void {
+        shortcutsObjects[cmd.shortcut] = cmd;
+    }
+
+    function FindCommandForShortcut(keys: string[]): UI.IShortcutCommand {
+        return undefined;
     }
 
     function CheckRequiredValues(): void {
-        if (Config.rootFolder === undefined || Config.rootFolder === '') {
+        if (Config.rootFolder === undefined) {
             throw "Root folder must be set.";
         }
-        if (Config.actionRequest === undefined || Config.actionRequest === '') {
-            throw "Action request url must be set.";
-        }
-        if (Config.DEBUG) {
-            console.log(Config);
+        if (Config.dataService === undefined) {
+            if (Config.DEBUG) {
+                console.log('The data service is not specified, configure the data service as remote.');
+            }
+            Config.dataService = new Data.RemoteDataService(Config);
         }
     }
 }

@@ -1,25 +1,52 @@
-namespace f14.Explorer {
+namespace f14.Explorer {    
 
-    import core = f14.Core;
-    import config = core.Config;
-    import ajax = f14.Ajax;
-    import ui = f14.UI;
+    export var NavigationData: Navigation.NavigationStack = new Navigation.NavigationStack();
 
-    export function Navigate(folderPath?: string): void {
+    function Navigate(): void {
+        let path = NavigationData.GetCurrentPath();
+
+        if (Core.Config.DEBUG) {
+            console.log('Navigate => ' + path);
+        }
+
+        Core.Config.dataService.LoadFileSystemInfo(path, payload => {            
+            UI.RenderFileStruct(payload.data.folders, payload.data.files);
+        });
+    }
+
+    export function NavigateTo(folderPath: string): void {
         if (folderPath === undefined) {
-            folderPath = config.rootFolder;
-        }
-        if (config.DEBUG) {
-            console.log("Navigate to: " + folderPath);
+            throw "Folder path must be set.";
         }
 
-        core.currentFolderPath = folderPath;
-        let renderFileStruct = (payload): void => ui.RenderFileStruct(payload.folders, payload.files);
+        // Clear current navigation stack.
+        NavigationData.Clear();
+        NavigationData.Add(folderPath);
+        Navigate();
+    }
 
-        if (config.IS_TEST) {
-            console.log('Test mode navigation.');
+    export function GoForward(folderName?: string): void {
+        if (folderName) {
+            NavigationData.Add(folderName);
+            Navigate();
         } else {
-            ajax.GetFileSystemInfo(folderPath, renderFileStruct);
+            // TODO: Move to last forward history.
         }
+    }
+
+    export function GoBack(): void {
+        NavigationData.Pop();
+        Navigate();
+    }
+
+    /**
+     * Navigate to the current location. Using for redraw file struct section.
+     */
+    export function ReNavigate(): void {
+        Navigate();
+    }
+
+    export function OpenFile(fileName: string): void {
+        // TODO: Open file
     }
 }

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="dist/css/styles.css" />
 
-    <script src="node_modules/jquery/dist/jquery.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 
     <script src="utils.min.js"></script>
     <script src="dist/js/app.js"></script>
@@ -14,10 +14,9 @@
 <body>
     <script type="text/javascript">
         var settings = {
-            IS_TEST: true,
             DEBUG: true,
-            rootFolder: 'C:\\',
-            selectCallback: undefined,
+            rootFolder: 'C:',
+            selectCallback: function(files) {},
             actionRequest: 'action/url',
             uploadRequest: 'upload/url',
             xhrBeforeSend: xhr => {
@@ -28,12 +27,7 @@
             }
         };
 
-        new FManagerTest(settings);
-
-        //f14fm.init(settings);
-        // test only
-        //f14fm.currentFolderPath = 'C:\\';
-        //f14fm.renderFileStruct(folders, files);
+        new f14.Tests.FManagerTest(settings);
     </script>
 </body>
 

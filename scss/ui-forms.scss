@@ -1,0 +1,65 @@
+@import "_vars.scss";
+
+/* Upload form */
+
+.ui-upload-form {
+    .ui-input-group {
+        padding: 5px;
+        border-bottom: 1px dashed $popup_default_bg_color;
+        .status,
+        .progress {
+            display: none;
+        }
+        .status-value,
+        .progress-value {
+            padding: 7px;
+        }
+        .progress-value {
+            font-size: 16px;
+            line-height: 1;
+            color: #49ff00;
+            background-color: #8d8d8d;
+            border-radius: 10px;
+            width: 60px;
+            text-align: center;
+        }
+    }
+    .ui-input-group:not(:last-child) {
+        margin-bottom: 5px;
+    }
+    .ui-input-group.success,
+    .ui-input-group.error {
+        .actions,
+        .progress {
+            display: none;
+        }
+        .status {
+            display: table-cell;
+        }
+    }
+    .ui-input-group.success {
+        .status {
+            .status-value::before {
+                content: "\E8FB";
+                color: $success_color;
+            }
+        }
+    }
+    .ui-input-group.error {
+        .status {
+            .status-value::before {
+                content: "\EB90";
+                color: $danger_color;
+            }
+        }
+    }
+    .ui-input-group.loading {
+        .actions,
+        .status {
+            display: none;
+        }
+        .progress {
+            display: table-cell;
+        }
+    }
+}

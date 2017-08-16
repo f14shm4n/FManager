@@ -1,0 +1,71 @@
+/* Segoe MDL2 Assets Icons */
+
+.mdl2,
+[class^="mdl2-"],
+[class*="mdl2-"] {
+    position: relative;
+    top: 1px;
+    line-height: 1;
+    font-family: 'Segoe MDL2 Assets';
+    font-style: normal;
+    font-size: 16px;
+    display: inline-block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+.mdl2-folder::before {
+    content: "\e8B7";
+}
+
+.mdl2-file::before {
+    content: "\E7C3";
+}
+
+.mdl2-rename::before {
+    content: "\E8AC";
+}
+
+.mdl2-delete::before {
+    content: "\E74D";
+}
+
+.mdl2-more::before {
+    content: "\E712";
+}
+
+.mdl2-accept::before {
+    content: "\E8FB";
+}
+
+.mdl2-upload::before {
+    content: "\E11C";
+}
+
+.mdl2-new-folder::before {
+    content: "\E1DA";
+}
+
+.mdl2-move::before {
+    content: "\E19C";
+}
+
+.mdl2-copy::before {
+    content: "\E8C8";
+}
+
+.mdl2-paste::before {
+    content: "\E16D";
+}
+
+.mdl2-select-all::before {
+    content: "\E8B3";
+}
+
+.mdl2-close::before {
+    content: "\E8BB";
+}
+
+.mdl2-error::before {
+    content: "\EB90";
+}

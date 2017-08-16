@@ -1,18 +1,19 @@
 {
-  "name": "f14fm",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "jquery": "3.2.1",
-    "lodash": "4.17.4",
-    "gulp": "^3.9.1",
-    "gulp-concat": "2.6.1",
-    "gulp-sass": "3.1.0",
-    "gulp-uglify": "^3.0.0",
-    "gulp-rename": "^1.2.2",
-    "del": "3.0.0",
-    "node-sass": "^4.5.3"
-  },
-  "devDependencies": {},
-  "scripts": {}
+    "name": "f14fm",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "jquery": "3.2.1",
+        "lodash": "4.17.4",
+        "gulp": "^3.9.1",
+        "gulp-concat": "2.6.1",
+        "gulp-sass": "3.1.0",
+        "gulp-uglify": "^3.0.0",
+        "gulp-rename": "^1.2.2",
+        "merge-stream": "^1.0.1",
+        "del": "3.0.0",
+        "node-sass": "^4.5.3"
+    },
+    "devDependencies": {},
+    "scripts": {}
 }

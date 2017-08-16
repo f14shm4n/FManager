@@ -11,13 +11,39 @@
             }
         },
         {
-            "taskName": "gulp-tasks",
-            "type": "shell",
-            "command": "./gulp-tasks.cmd",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always"
-            }
+            "type": "gulp",
+            "task": "clean",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "install",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "compress",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "copy-assets",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "sass",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "ts-scripts",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "build",
+            "problemMatcher": []
         }
     ]
 }
