@@ -121,7 +121,7 @@ namespace f14.Events {
                 let opData = new Memory.MoveOperationData();
                 opData.type = type;
                 opData.sourceDirectory = Explorer.NavigationData.GetCurrentPath();
-                opData.targets = items.map(x => x.FileSystemInfo.name);
+                opData.targets = items.map(x => new Ajax.MoveTarget(x.FileSystemInfo.name, x.Type == Models.FileSystemItemType.File));
                 Core.AppBuffer.MoveOperation = opData;
             }
         }

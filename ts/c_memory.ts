@@ -32,7 +32,7 @@ namespace f14.Memory {
         type: string;
         sourceDirectory: string;
         destinationDirectory: string;
-        targets: string[];
+        targets: Ajax.MoveTarget[];
         ddd: string;
     }
 

@@ -1,4 +1,4 @@
-namespace f14.Explorer {    
+namespace f14.Explorer {
 
     export var NavigationData: Navigation.NavigationStack = new Navigation.NavigationStack();
 
@@ -9,7 +9,7 @@ namespace f14.Explorer {
             console.log('Navigate => ' + path);
         }
 
-        Core.Config.dataService.LoadFileSystemInfo(path, payload => {            
+        Core.Config.dataService.LoadFileSystemInfo(new Ajax.FileSystemRequestData(path), payload => {
             UI.RenderFileStruct(payload.data.folders, payload.data.files);
         });
     }
@@ -40,7 +40,7 @@ namespace f14.Explorer {
     }
 
     /**
-     * Navigate to the current location. Using for redraw file struct section.
+     * Navigate to the current location. Used for redraw the file struct section.
      */
     export function ReNavigate(): void {
         Navigate();

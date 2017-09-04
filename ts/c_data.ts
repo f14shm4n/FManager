@@ -1,9 +1,9 @@
 namespace f14.Data {
     export interface IDataService {
-        LoadFileSystemInfo(path: string, callback: (payload: any) => void): void;
+        LoadFileSystemInfo(requestData: Ajax.FileSystemRequestData, callback: (payload: any) => void): void;
         RenameObjects(requestData: Ajax.RenameRequestData, callback: (payload: any) => void): void;
         DeleteObjects(requestData: Ajax.DeleteRequestData, callback: (payload: any) => void): void;
-        CreateObject(requestData: Ajax.IRequestData, callback: (payload: any) => void): void;
+        CreateObject(requestData: Ajax.CreateRequestData, callback: (payload: any) => void): void;
         MoveObjects(data: Ajax.MoveRequestData, callback: (payload: any) => void): void;
         UploadFile(file: File, callback: (payload: any) => void, progress: (e: ProgressEvent) => any): void;
     }
@@ -23,7 +23,7 @@ namespace f14.Data {
                 dataType: 'json',
                 data: JSON.stringify(data),
                 beforeSend: this.config.xhrBeforeSend,
-                success: function (payload) {
+                success: payload => {
                     if (this.config.DEBUG) {
                         console.log(payload);
                     }
@@ -45,14 +45,14 @@ namespace f14.Data {
                 data: data,
                 dataType: 'json',
                 beforeSend: this.config.xhrBeforeSend,
-                xhr: function () {
+                xhr: () => {
                     var xhr = $.ajaxSettings.xhr();
                     if (xhr.upload && progress) {
                         xhr.upload.addEventListener('progress', progress, false);
                     }
                     return xhr;
                 },
-                success: function (payload) {
+                success: payload => {
                     if (this.config.DEBUG) {
                         console.log(payload);
                     }
@@ -64,11 +64,8 @@ namespace f14.Data {
             return ajaxSettings;
         }
 
-        LoadFileSystemInfo(path: string, callback: (payload: any) => void): void {
-            var settings = this.GenerateActionRequestData({
-                type: 'struct',
-                folderPath: path
-            }, callback);
+        LoadFileSystemInfo(requestData: Ajax.FileSystemRequestData, callback: (payload: any) => void): void {
+            var settings = this.GenerateActionRequestData(requestData, callback);
             $.ajax(settings);
         }
 
@@ -82,7 +79,7 @@ namespace f14.Data {
             $.ajax(settings);
         }
 
-        CreateObject(requestData: Ajax.IRequestData, callback: (payload: any) => void): void {
+        CreateObject(requestData: Ajax.CreateRequestData, callback: (payload: any) => void): void {
             var settings = this.GenerateActionRequestData(requestData, callback);
             $.ajax(settings);
         }
@@ -94,6 +91,7 @@ namespace f14.Data {
 
         UploadFile(file: File, callback: (payload: any) => void, progress: (e: ProgressEvent) => any): void {
             let data = new FormData();
+            data.append('path', Explorer.NavigationData.GetCurrentPath());
             data.append('file', file);
 
             let settings = this.GenerateUploadRequestData(data, callback, progress);
@@ -106,13 +104,13 @@ namespace f14.Data {
         private map: Memory.InMemoryNavigationMap;
 
         constructor(map: Memory.InMemoryNavigationMap) {
-            this.map = map;            
+            this.map = map;
         }
 
-        LoadFileSystemInfo(path: string, callback: (payload: any) => void): void {
-            let folder = this.map.GetFolderItemForPath(path);
+        LoadFileSystemInfo(requestData: Ajax.FileSystemRequestData, callback: (payload: any) => void): void {
+            let folder = this.map.GetFolderItemForPath(requestData.path);
             if (folder === undefined) {
-                throw `No folder info for given path: ${path}`;
+                throw `No folder info for given path: ${requestData.path}`;
             }
             let payload = {
                 data: {
@@ -126,11 +124,13 @@ namespace f14.Data {
         RenameObjects(requestData: Ajax.RenameRequestData, callback: (payload: any) => void): void {
             let renameData = requestData;
 
-            let folder = this.map.GetFolderItemForPath(renameData.folderPath);
+            let folder = this.map.GetFolderItemForPath(renameData.path);
             if (folder === undefined) {
-                throw `No folder info for given path: ${renameData.folderPath}`;
+                throw `No folder info for given path: ${renameData.path}`;
             }
             let renameInfo = renameData.renames[0];
+
+            console.log(renameInfo);
 
             if (folder.FileExists(renameInfo.newName)) {
                 let msg = Utils.getString('.popup.rename.error.exist').Format(renameInfo.newName);
@@ -139,14 +139,14 @@ namespace f14.Data {
                     data: { errors: [msg] }
                 });
             } else {
-                folder.GetFile(renameInfo.oldName).name = renameInfo.newName;
+                folder.GetObject(renameInfo.oldName).name = renameInfo.newName;
                 callback({ success: 'Done.', data: {} });
             }
         }
 
         DeleteObjects(requestData: Ajax.DeleteRequestData, callback: (payload: any) => void): void {
             let data = requestData;
-            let dir = this.map.GetFolderItemForPath(data.folderPath);
+            let dir = this.map.GetFolderItemForPath(data.path);
             for (let n of data.objectNames) {
                 dir.DeleteObject(n);
             }
@@ -158,7 +158,7 @@ namespace f14.Data {
             });
         }
 
-        CreateObject(requestData: Ajax.IRequestData, callback: (payload: any) => void): void {
+        CreateObject(requestData: Ajax.CreateRequestData, callback: (payload: any) => void): void {
             throw new Error("Method not implemented.");
         }
 
@@ -171,14 +171,14 @@ namespace f14.Data {
             let itemsToMove: Models.FileSystemInfo[] = [];
             if (data.type === 'move') {
                 for (let n of data.targets) {
-                    let o = srcDir.DeleteObject(n);
+                    let o = srcDir.DeleteObject(n.name);
                     if (o) {
                         itemsToMove.push(o);
                     }
                 }
             } else if (data.type === 'copy') {
                 for (let n of data.targets) {
-                    let o = srcDir.GetObject(n);
+                    let o = srcDir.GetObject(n.name);
                     if (o) {
                         itemsToMove.push(o);
                     }

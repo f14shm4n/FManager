@@ -5,6 +5,7 @@ var sass = require('gulp-sass');
 var unglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var merge = require('merge-stream');
+var cleanCSS = require('gulp-clean-css');
 
 gulp.task('clean', function() {
     return del(['dist/**/*']);
@@ -66,17 +67,29 @@ gulp.task('copy-assets', function() {
     ], { base: 'assets' }).pipe(gulp.dest('./dist'));
 });
 
-gulp.task('compress', function() {
+gulp.task('compress-js', function() {
     return gulp.src(['./dist/js/*.js'])
         .pipe(unglify())
         .pipe(rename({ suffix: '.min' }))
         .pipe(gulp.dest('./dist/js'));
 });
 
+gulp.task('compress-css', function() {
+    return gulp.src(['./dist/css/*.css'])
+        .pipe(cleanCSS())
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest('./dist/css'));
+});
+
 gulp.task('build', [
     'copy-assets',
     'ts-scripts',
     'sass',
+]);
+
+gulp.task('compress-js-css', [
+   'compress-js' ,
+   'compress-css'
 ]);
 
 gulp.task('default', []);

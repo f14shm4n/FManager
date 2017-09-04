@@ -197,6 +197,7 @@ var f14;
                 this.config = config;
             }
             RemoteDataService.prototype.GenerateActionRequestData = function (data, callback) {
+                var _this = this;
                 var ajaxSettings = {
                     url: this.config.actionRequest,
                     type: 'POST',
@@ -205,7 +206,7 @@ var f14;
                     data: JSON.stringify(data),
                     beforeSend: this.config.xhrBeforeSend,
                     success: function (payload) {
-                        if (this.config.DEBUG) {
+                        if (_this.config.DEBUG) {
                             console.log(payload);
                         }
                         if (callback) {
@@ -216,6 +217,7 @@ var f14;
                 return ajaxSettings;
             };
             RemoteDataService.prototype.GenerateUploadRequestData = function (data, callback, progress) {
+                var _this = this;
                 var ajaxSettings = {
                     url: this.config.uploadRequest,
                     type: 'POST',
@@ -233,7 +235,7 @@ var f14;
                         return xhr;
                     },
                     success: function (payload) {
-                        if (this.config.DEBUG) {
+                        if (_this.config.DEBUG) {
                             console.log(payload);
                         }
                         if (callback) {
@@ -243,11 +245,8 @@ var f14;
                 };
                 return ajaxSettings;
             };
-            RemoteDataService.prototype.LoadFileSystemInfo = function (path, callback) {
-                var settings = this.GenerateActionRequestData({
-                    type: 'struct',
-                    folderPath: path
-                }, callback);
+            RemoteDataService.prototype.LoadFileSystemInfo = function (requestData, callback) {
+                var settings = this.GenerateActionRequestData(requestData, callback);
                 $.ajax(settings);
             };
             RemoteDataService.prototype.RenameObjects = function (requestData, callback) {
@@ -268,6 +267,7 @@ var f14;
             };
             RemoteDataService.prototype.UploadFile = function (file, callback, progress) {
                 var data = new FormData();
+                data.append('path', f14.Explorer.NavigationData.GetCurrentPath());
                 data.append('file', file);
                 var settings = this.GenerateUploadRequestData(data, callback, progress);
                 $.ajax(settings);
@@ -279,10 +279,10 @@ var f14;
             function InMemoryDataService(map) {
                 this.map = map;
             }
-            InMemoryDataService.prototype.LoadFileSystemInfo = function (path, callback) {
-                var folder = this.map.GetFolderItemForPath(path);
+            InMemoryDataService.prototype.LoadFileSystemInfo = function (requestData, callback) {
+                var folder = this.map.GetFolderItemForPath(requestData.path);
                 if (folder === undefined) {
-                    throw "No folder info for given path: " + path;
+                    throw "No folder info for given path: " + requestData.path;
                 }
                 var payload = {
                     data: {
@@ -294,11 +294,12 @@ var f14;
             };
             InMemoryDataService.prototype.RenameObjects = function (requestData, callback) {
                 var renameData = requestData;
-                var folder = this.map.GetFolderItemForPath(renameData.folderPath);
+                var folder = this.map.GetFolderItemForPath(renameData.path);
                 if (folder === undefined) {
-                    throw "No folder info for given path: " + renameData.folderPath;
+                    throw "No folder info for given path: " + renameData.path;
                 }
                 var renameInfo = renameData.renames[0];
+                console.log(renameInfo);
                 if (folder.FileExists(renameInfo.newName)) {
                     var msg = f14.Utils.getString('.popup.rename.error.exist').Format(renameInfo.newName);
                     callback({
@@ -307,13 +308,13 @@ var f14;
                     });
                 }
                 else {
-                    folder.GetFile(renameInfo.oldName).name = renameInfo.newName;
+                    folder.GetObject(renameInfo.oldName).name = renameInfo.newName;
                     callback({ success: 'Done.', data: {} });
                 }
             };
             InMemoryDataService.prototype.DeleteObjects = function (requestData, callback) {
                 var data = requestData;
-                var dir = this.map.GetFolderItemForPath(data.folderPath);
+                var dir = this.map.GetFolderItemForPath(data.path);
                 for (var _i = 0, _a = data.objectNames; _i < _a.length; _i++) {
                     var n = _a[_i];
                     dir.DeleteObject(n);
@@ -336,7 +337,7 @@ var f14;
                 if (data.type === 'move') {
                     for (var _i = 0, _a = data.targets; _i < _a.length; _i++) {
                         var n = _a[_i];
-                        var o = srcDir.DeleteObject(n);
+                        var o = srcDir.DeleteObject(n.name);
                         if (o) {
                             itemsToMove.push(o);
                         }
@@ -345,7 +346,7 @@ var f14;
                 else if (data.type === 'copy') {
                     for (var _b = 0, _c = data.targets; _b < _c.length; _b++) {
                         var n = _c[_b];
-                        var o = srcDir.GetObject(n);
+                        var o = srcDir.GetObject(n.name);
                         if (o) {
                             itemsToMove.push(o);
                         }
@@ -491,13 +492,22 @@ var f14;
         }());
         Ajax.ResponseData = ResponseData;
         var RenameFileInfo = (function () {
-            function RenameFileInfo(oldName, newName) {
+            function RenameFileInfo(oldName, newName, isFile) {
                 this.oldName = oldName;
                 this.newName = newName;
+                this.isFile = isFile;
             }
             return RenameFileInfo;
         }());
         Ajax.RenameFileInfo = RenameFileInfo;
+        var MoveTarget = (function () {
+            function MoveTarget(name, isFile) {
+                this.name = name;
+                this.isFile = isFile;
+            }
+            return MoveTarget;
+        }());
+        Ajax.MoveTarget = MoveTarget;
         var BaseRequestData = (function () {
             function BaseRequestData(type) {
                 this.type = type;
@@ -505,16 +515,26 @@ var f14;
             return BaseRequestData;
         }());
         Ajax.BaseRequestData = BaseRequestData;
+        var FileSystemRequestData = (function (_super) {
+            __extends(FileSystemRequestData, _super);
+            function FileSystemRequestData(folderPath) {
+                var _this = _super.call(this, 'struct') || this;
+                _this.path = folderPath;
+                return _this;
+            }
+            return FileSystemRequestData;
+        }(BaseRequestData));
+        Ajax.FileSystemRequestData = FileSystemRequestData;
         var RenameRequestData = (function (_super) {
             __extends(RenameRequestData, _super);
             function RenameRequestData(folderPath) {
                 var _this = _super.call(this, 'rename') || this;
                 _this.renames = [];
-                _this.folderPath = folderPath;
+                _this.path = folderPath;
                 return _this;
             }
-            RenameRequestData.prototype.AddRenameItem = function (oldName, newName) {
-                this.renames.push(new RenameFileInfo(oldName, newName));
+            RenameRequestData.prototype.AddRenameItem = function (oldName, newName, isFile) {
+                this.renames.push(new RenameFileInfo(oldName, newName, isFile));
             };
             RenameRequestData.prototype.HasData = function () {
                 return this.renames.length > 0;
@@ -527,7 +547,7 @@ var f14;
             function DeleteRequestData(folderPath, items) {
                 var _this = _super.call(this, 'delete') || this;
                 _this.objectNames = [];
-                _this.folderPath = folderPath;
+                _this.path = folderPath;
                 if (items && items.length > 0) {
                     items.forEach(function (x) { return _this.objectNames.push(x); });
                 }
@@ -543,6 +563,7 @@ var f14;
             __extends(MoveRequestData, _super);
             function MoveRequestData(type, srcDir, destDir, targets) {
                 var _this = _super.call(this, type) || this;
+                _this.overwrite = false;
                 _this.sourceDirectory = srcDir;
                 _this.destinationDirectory = destDir;
                 _this.targets = targets;
@@ -554,6 +575,14 @@ var f14;
             return MoveRequestData;
         }(BaseRequestData));
         Ajax.MoveRequestData = MoveRequestData;
+        var CreateRequestData = (function (_super) {
+            __extends(CreateRequestData, _super);
+            function CreateRequestData(type) {
+                return _super.call(this, type) || this;
+            }
+            return CreateRequestData;
+        }(BaseRequestData));
+        Ajax.CreateRequestData = CreateRequestData;
     })(Ajax = f14.Ajax || (f14.Ajax = {}));
 })(f14 || (f14 = {}));
 
@@ -671,7 +700,7 @@ var f14;
                     var opData = new f14.Memory.MoveOperationData();
                     opData.type = type;
                     opData.sourceDirectory = f14.Explorer.NavigationData.GetCurrentPath();
-                    opData.targets = items.map(function (x) { return x.FileSystemInfo.name; });
+                    opData.targets = items.map(function (x) { return new f14.Ajax.MoveTarget(x.FileSystemInfo.name, x.Type == f14.Models.FileSystemItemType.File); });
                     f14.Core.AppBuffer.MoveOperation = opData;
                 }
             };
@@ -689,6 +718,7 @@ var f14;
         var Configuration = (function () {
             function Configuration() {
                 this.actionButtons = [];
+                this.allowShortcuts = false;
                 this.DEBUG = false;
             }
             return Configuration;
@@ -1472,7 +1502,7 @@ var f14;
                         var oldName = textBox.attr('data-origin-name');
                         var newName = textBox.val();
                         if (oldName !== newName) {
-                            requestData.AddRenameItem(oldName, newName);
+                            requestData.AddRenameItem(oldName, newName, textBox.data('io-type') == f14.Models.FileSystemItemType.File);
                         }
                         if (requestData.HasData()) {
                             f14.Core.Config.dataService.RenameObjects(requestData, function (payload) {
@@ -1492,6 +1522,7 @@ var f14;
                     var tb = new UI.TextBox();
                     tb.$This.addClass('tb-rename');
                     tb.$This.attr('data-origin-name', itemName);
+                    tb.$This.data('io-type', item.Type);
                     tb.$This.val(itemName);
                     this.Body.append(tb.$This);
                 };
@@ -1586,7 +1617,10 @@ var f14;
                     var btn = new UI.BaseButton();
                     btn.$This.addClass('btn-file');
                     btn.SetText(f14.Utils.getString('.io.select.files'));
-                    var input = $('<input>').attr('type', 'file').attr('multiple', 'multiple');
+                    var input = $('<input>')
+                        .attr('type', 'file')
+                        .attr('multiple', 'multiple')
+                        .attr('accept', f14.Core.Config.uploadFileFilter || '*');
                     input.on('change', function (e) {
                         var fileSelector = e.target;
                         var files = fileSelector.files;
@@ -1628,6 +1662,7 @@ var f14;
                                     if (_this.tasksCount === 0) {
                                         $(_this.Footer.find('.btn-file')).removeClass('disabled');
                                         btn.$This.removeClass('disabled');
+                                        f14.Explorer.ReNavigate();
                                     }
                                 }, function (e) {
                                     if (e.lengthComputable) {
@@ -1676,7 +1711,7 @@ var f14;
             if (f14.Core.Config.DEBUG) {
                 console.log('Navigate => ' + path);
             }
-            f14.Core.Config.dataService.LoadFileSystemInfo(path, function (payload) {
+            f14.Core.Config.dataService.LoadFileSystemInfo(new f14.Ajax.FileSystemRequestData(path), function (payload) {
                 f14.UI.RenderFileStruct(payload.data.folders, payload.data.files);
             });
         }
@@ -1706,7 +1741,7 @@ var f14;
         }
         Explorer.GoBack = GoBack;
         /**
-         * Navigate to the current location. Using for redraw file struct section.
+         * Navigate to the current location. Used for redraw the file struct section.
          */
         function ReNavigate() {
             Navigate();

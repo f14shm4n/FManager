@@ -101,10 +101,10 @@ namespace f14.UI.Popups {
                 let textBox: JQuery = this.Body.find('.tb-rename');
                 let requestData = new Ajax.RenameRequestData(f14.Explorer.NavigationData.GetCurrentPath());
 
-                let oldName = textBox.attr('data-origin-name');
+                let oldName = textBox.attr('data-origin-name');                
                 let newName = textBox.val();
                 if (oldName !== newName) {
-                    requestData.AddRenameItem(oldName, newName);
+                    requestData.AddRenameItem(oldName, newName, textBox.data('io-type') == Models.FileSystemItemType.File);
                 }
 
                 if (requestData.HasData()) {
@@ -125,6 +125,7 @@ namespace f14.UI.Popups {
             let tb = new UI.TextBox();
             tb.$This.addClass('tb-rename');
             tb.$This.attr('data-origin-name', itemName);
+            tb.$This.data('io-type', item.Type);
             tb.$This.val(itemName);
 
             this.Body.append(tb.$This);
@@ -235,7 +236,10 @@ namespace f14.UI.Popups {
             btn.$This.addClass('btn-file');
             btn.SetText(Utils.getString('.io.select.files'));
 
-            let input = $('<input>').attr('type', 'file').attr('multiple', 'multiple');
+            let input = $('<input>')
+                .attr('type', 'file')
+                .attr('multiple', 'multiple')
+                .attr('accept', Core.Config.uploadFileFilter || '*');
             input.on('change', e => {
                 let fileSelector = e.target as HTMLInputElement;
                 let files = fileSelector.files;
@@ -286,6 +290,7 @@ namespace f14.UI.Popups {
                                 if (this.tasksCount === 0) {
                                     $(this.Footer.find('.btn-file')).removeClass('disabled');
                                     btn.$This.removeClass('disabled');
+                                    Explorer.ReNavigate();
                                 }
                             },
                             e => {

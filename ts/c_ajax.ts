@@ -10,10 +10,22 @@ namespace f14.Ajax {
     export class RenameFileInfo {
         oldName: string;
         newName: string;
+        isFile: boolean;
 
-        constructor(oldName: string, newName: string) {
+        constructor(oldName: string, newName: string, isFile: boolean) {
             this.oldName = oldName;
             this.newName = newName;
+            this.isFile = isFile;
+        }
+    }
+
+    export class MoveTarget {
+        name: string;
+        isFile: boolean;
+
+        constructor(name: string, isFile: boolean) {
+            this.name = name;
+            this.isFile = isFile;
         }
     }
 
@@ -29,17 +41,25 @@ namespace f14.Ajax {
         }
     }
 
+    export class FileSystemRequestData extends BaseRequestData {
+        path: string;
+        constructor(folderPath: string) {
+            super('struct');
+            this.path = folderPath;
+        }
+    }
+
     export class RenameRequestData extends BaseRequestData {
-        folderPath: string;
+        path: string;
         renames: RenameFileInfo[] = [];
 
         constructor(folderPath: string) {
             super('rename');
-            this.folderPath = folderPath;
+            this.path = folderPath;
         }
 
-        public AddRenameItem(oldName: string, newName: string): void {
-            this.renames.push(new RenameFileInfo(oldName, newName));
+        public AddRenameItem(oldName: string, newName: string, isFile: boolean): void {
+            this.renames.push(new RenameFileInfo(oldName, newName, isFile));
         }
 
         public HasData(): boolean {
@@ -48,13 +68,13 @@ namespace f14.Ajax {
     }
 
     export class DeleteRequestData extends BaseRequestData {
-        folderPath: string;
+        path: string;
         objectNames: string[] = [];
 
         constructor(folderPath: string, items?: string[]) {
             super('delete');
 
-            this.folderPath = folderPath;
+            this.path = folderPath;
 
             if (items && items.length > 0) {
                 items.forEach(x => this.objectNames.push(x));
@@ -69,9 +89,10 @@ namespace f14.Ajax {
     export class MoveRequestData extends BaseRequestData {
         sourceDirectory: string;
         destinationDirectory: string;
-        targets: string[];
+        overwrite: boolean = false;
+        targets: MoveTarget[];
 
-        constructor(type: string, srcDir: string, destDir: string, targets: string[]) {
+        constructor(type: string, srcDir: string, destDir: string, targets: MoveTarget[]) {
             super(type);
             this.sourceDirectory = srcDir;
             this.destinationDirectory = destDir;
@@ -80,6 +101,12 @@ namespace f14.Ajax {
 
         public static From(data: Memory.MoveOperationData): MoveRequestData {
             return new MoveRequestData(data.type, data.sourceDirectory, data.destinationDirectory, data.targets);
+        }
+    }
+
+    export class CreateRequestData extends BaseRequestData {
+        constructor(type: string) {
+            super(type);
         }
     }
 }

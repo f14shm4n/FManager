@@ -44,6 +44,16 @@
             "type": "gulp",
             "task": "build",
             "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "compress-js",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "compress-js-css",
+            "problemMatcher": []
         }
     ]
 }

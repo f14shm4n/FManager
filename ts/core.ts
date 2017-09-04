@@ -8,7 +8,8 @@ namespace f14.Core {
         selectCallback: (selectedObjects: string[]) => void;
         dataService: Data.IDataService;
         actionButtons: Models.ActionButtonInfo[] = [];
-        allowShortcuts: false;
+        allowShortcuts: boolean = false;
+        uploadFileFilter: string;
         DEBUG: boolean = false;
     }
 
