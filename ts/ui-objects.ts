@@ -187,7 +187,7 @@ namespace f14.UI {
             }
         }
 
-        private AddItem(type: models.FileSystemItemType, data?: models.FileSystemInfo): void {
+        private AddItem(type: models.FileSystemItemType, data?: models.BaseFileInfo): void {
             if (type === models.FileSystemItemType.Back) {
                 data = { name: 'up' };
             }
@@ -223,7 +223,7 @@ namespace f14.UI {
     export class FileStructItem implements IJQueryObject {
 
         public Type: models.FileSystemItemType;
-        public FileSystemInfo: models.FileSystemInfo;
+        public FileSystemInfo: models.BaseFileInfo;
         public CheckState: boolean = false;
 
         public $This: JQuery;
@@ -232,14 +232,26 @@ namespace f14.UI {
         private Icon: JQuery;
         private NameContainer: JQuery;
 
-        constructor(type: models.FileSystemItemType, data: models.FileSystemInfo) {
+        constructor(type: models.FileSystemItemType, data: models.BaseFileInfo) {
             this.Type = type;
             this.FileSystemInfo = data;
 
             this.$This = $('<div>')
                 .addClass('ui-file-struct-item ui-input-group')
-                .on('click', e => Events.IOObjectEvents.onItemClick(e, this))
-                .on('dblclick', e => Events.IOObjectEvents.onItemDoubleClick(e, this));
+                .on('click', e => this.TriggerCheckState())
+                .on('dblclick', e => {
+                    switch (this.Type) {
+                        case Models.FileSystemItemType.Back:
+                            Explorer.GoBack();
+                            break;
+                        case Models.FileSystemItemType.File:
+                            Explorer.OpenFile(this.FileSystemInfo.name);
+                            break;
+                        case Models.FileSystemItemType.Folder:
+                            Explorer.GoForward(this.FileSystemInfo.name);
+                            break;
+                    }
+                });
 
             this.IconContainer = $('<div>').addClass('ui-item-icon');
             this.NameContainer;

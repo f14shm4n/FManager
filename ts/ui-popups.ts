@@ -49,7 +49,7 @@ namespace f14.UI.Popups {
             this.ErrorSection = $('<div>').addClass('ui-popup-errors').appendTo(this.Body).hide();
         }
 
-        protected PopulatePayloadErrors(payload: any): void {
+        protected PopulatePayloadErrors(payload: Ajax.BaseResult): void {
             this.ErrorSection.empty();
             let addErrorItem = (msg: string) => {
                 $('<div>')
@@ -57,15 +57,11 @@ namespace f14.UI.Popups {
                     .text(msg)
                     .appendTo(this.ErrorSection);
             };
-
-            if (payload.data && payload.data.errors) {
-                for (let i of payload.data.errors) {
+            if (payload.hasErrors()) {
+                for (let i of payload.errors) {
                     addErrorItem(i);
                 }
-            } else {
-                addErrorItem(payload.error);
             }
-
             this.ErrorSection.show(200);
         }
 
@@ -99,18 +95,16 @@ namespace f14.UI.Popups {
 
             let applyBtn = this.GenerateButton(Utils.getString('.apply'), (e) => {
                 let textBox: JQuery = this.Body.find('.tb-rename');
-                let requestData = new Ajax.RenameRequestData(f14.Explorer.NavigationData.GetCurrentPath());
+                let requestParam = new Ajax.RenameParam(f14.Explorer.NavigationData.GetCurrentPath());
 
-                let oldName = textBox.attr('data-origin-name');                
+                let oldName = textBox.attr('data-origin-name');
                 let newName = textBox.val();
                 if (oldName !== newName) {
-                    requestData.AddRenameItem(oldName, newName, textBox.data('io-type') == Models.FileSystemItemType.File);
+                    requestParam.AddRenameItem(oldName, newName, textBox.data('io-type') == Models.FileSystemItemType.File);
                 }
 
-                if (requestData.HasData()) {
-                    Core.Config.dataService.RenameObjects(requestData, payload => {
-                        this.updateItemNames(requestData, payload);
-                    });
+                if (requestParam.HasData()) {
+                    Core.Config.ajaxRequestMap[Ajax.AjaxActionTypes.Rename].execute(requestParam, payload => this.updateItemNames(payload));
                 } else {
                     UI.HidePopup();
                 }
@@ -131,16 +125,13 @@ namespace f14.UI.Popups {
             this.Body.append(tb.$This);
         }
 
-        private updateItemNames(requestData: f14.Ajax.RenameRequestData, payload: any) {
-            if (payload) {
-                if (payload.error) {
-                    this.PopulatePayloadErrors(payload);
-                } else {
-                    for (let i of requestData.renames) {
-                        this.item.SetItemName(i.newName);
-                    }
-                    UI.HidePopup();
-                }
+        private updateItemNames(payload: Ajax.BaseResult) {
+            if (payload.hasErrors()) {
+                this.PopulatePayloadErrors(payload);
+            } else {
+                let result = payload as Ajax.RenameResult;
+                this.item.SetItemName(result.renamedObjects[0].name); // TODO: multiple renames
+                UI.HidePopup();
             }
         }
     }
@@ -148,9 +139,9 @@ namespace f14.UI.Popups {
     export class DeletePopup extends Popup {
 
         private FolderPath: string;
-        private ItemNames: string[];
+        private ItemNames: Ajax.BaseActionTarget[];
 
-        constructor(folderPath: string, itemNames: string[]) {
+        constructor(folderPath: string, itemNames: Ajax.BaseActionTarget[]) {
             super();
 
             this.$This.addClass('danger');
@@ -163,22 +154,23 @@ namespace f14.UI.Popups {
             $('<p>').text(Utils.getString('.popup.delete.desc')).appendTo(this.Body);
 
             let delBtn = this.GenerateButton(Utils.getString('.io.delete'), e => {
-                let rData = new Ajax.DeleteRequestData(this.FolderPath, this.ItemNames);
-                Core.Config.dataService.DeleteObjects(rData, payload => {
+                let param = new Ajax.DeleteParam(this.FolderPath, this.ItemNames.map((v, i, arr) => v.name));
+                Core.Config.ajaxRequestMap[Ajax.AjaxActionTypes.Delete].execute(param, payload => {
                     if (Core.Config.DEBUG) {
-                        console.log(rData);
+                        console.log(param);
                     }
 
-                    if (payload.error) {
+                    if (payload.hasErrors()) {
                         this.PopulatePayloadErrors(payload);
                     }
 
-                    if (payload.data.affected > 0) {
+                    let result = payload as Ajax.DeleteResult;
+                    if (result.affected > 0) {
                         Explorer.ReNavigate();
                         UI.ShowToast({
-                            message: Utils.getString('.toast.delete.count.format').Format(payload.data.affected)
+                            message: Utils.getString('.toast.delete.count.format').Format(result.affected.toString())
                         });
-                        if (payload.success) {
+                        if (!result.hasErrors()) {
                             UI.HidePopup();
                         }
                     }
@@ -277,13 +269,20 @@ namespace f14.UI.Popups {
 
                         container.addClass('loading');
 
-                        Core.Config.dataService.UploadFile(file,
+                        let param = new Ajax.UploadFileParam(Explorer.NavigationData.GetCurrentPath(), file, e => {
+                            if (e.lengthComputable) {
+                                var prc = Math.ceil(e.loaded / e.total * 100);
+                                progress.text(prc + '%');
+                            }
+                        });
+
+                        Core.Config.ajaxRequestMap[Ajax.AjaxActionTypes.UploadFile].execute(param,
                             payload => {
                                 container.removeClass('loading');
-                                if (payload.success) {
-                                    container.addClass('success');
-                                } else {
+                                if (payload.hasErrors()) {
                                     container.addClass('error');
+                                } else {
+                                    container.addClass('success');
                                 }
 
                                 this.tasksCount = Math.max(0, this.tasksCount - 1);
@@ -291,12 +290,6 @@ namespace f14.UI.Popups {
                                     $(this.Footer.find('.btn-file')).removeClass('disabled');
                                     btn.$This.removeClass('disabled');
                                     Explorer.ReNavigate();
-                                }
-                            },
-                            e => {
-                                if (e.lengthComputable) {
-                                    var prc = Math.ceil(e.loaded / e.total * 100);
-                                    progress.text(prc + '%');
                                 }
                             });
                     });

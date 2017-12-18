@@ -72,6 +72,15 @@ namespace f14.UI {
         _uIContainer.ToastContainer.Hide();
     }
 
+    export function DisplayPayloadError(payload: Ajax.BaseResult) {
+        if (payload.hasErrors()) {
+            UI.ShowToast({
+                message: payload.errors.join('\n'),
+                title: 'Ajax response'
+            });
+        }
+    }
+
     // Private API
 
     function PrepareMarkup(): void {
@@ -103,7 +112,7 @@ namespace f14.UI {
             }));
         }
         // Show the upload button if uploadUrl is set.
-        if (Core.Config.uploadRequest) {
+        if (Core.Config.endPointUrlMap[Ajax.AjaxActionTypes.UploadFile]) {
             actionPanel.AddButton(ActionButton.Create({
                 classes: 'btn-primary',
                 icon: 'mdl2-upload',

@@ -127,8 +127,7 @@ body {
     background-color: #f7f7f7; }
   .ui-container .ui-file-struct-item:hover {
     transition: all linear .25s;
-    background-color: rgba(0, 0, 0, 0.54);
-    color: white; }
+    background-color: rgba(173, 173, 173, 0.54); }
 
 .ui-input-group {
   display: table;

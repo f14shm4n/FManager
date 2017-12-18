@@ -14,7 +14,7 @@ namespace f14.Models {
         Back
     }
 
-    export class FileSystemInfo {
+    export class BaseFileInfo {
         public name: string;
         public properties?: IStringMap<string> = {};
 
@@ -28,7 +28,7 @@ namespace f14.Models {
         }  
     }
 
-    export class FileInfo extends FileSystemInfo {
+    export class FileInfo extends BaseFileInfo {
         constructor(name: string, folder: DirectoryInfo, props?: IStringMap<string>) {
             super(name, props);
             this.Directory = folder;
@@ -40,7 +40,7 @@ namespace f14.Models {
         public Directory: DirectoryInfo;
     }
 
-    export class DirectoryInfo extends FileSystemInfo {
+    export class DirectoryInfo extends BaseFileInfo {
         constructor(name: string, parent?: DirectoryInfo, props?: IStringMap<string>) {
             super(name, props);
             this.Parent = parent;
@@ -93,12 +93,12 @@ namespace f14.Models {
             return undefined;
         }
 
-        public GetObject(name: string): FileSystemInfo {
+        public GetObject(name: string): BaseFileInfo {
             return this.GetFile(name) || this.GetFolder(name);
         }
 
-        public AddObject(obj: FileSystemInfo | FileSystemInfo[]): void {
-            if (obj instanceof FileSystemInfo) {
+        public AddObject(obj: BaseFileInfo | BaseFileInfo[]): void {
+            if (obj instanceof BaseFileInfo) {
                 this._AddObject(obj);
             } else {
                 for (let i of obj) {
@@ -107,7 +107,7 @@ namespace f14.Models {
             }
         }
 
-        private _AddObject(obj: FileSystemInfo): void {
+        private _AddObject(obj: BaseFileInfo): void {
             if (obj instanceof FileInfo) {
                 if (this.FileExists(obj.name)) {
                     this.DeleteObject(obj.name);
@@ -124,11 +124,11 @@ namespace f14.Models {
             }
         }
 
-        public DeleteObject(name: string): FileSystemInfo {
+        public DeleteObject(name: string): BaseFileInfo {
             return this._DeleteObject(this.Files, name) || this._DeleteObject(this.Folders, name);
         }
 
-        private _DeleteObject(collection: FileSystemInfo[], name: string): FileSystemInfo {
+        private _DeleteObject(collection: BaseFileInfo[], name: string): BaseFileInfo {
             for (let i = 0; i < collection.length; i++) {
                 let o = collection[i];
                 if (o.name === name) {

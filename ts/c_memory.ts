@@ -7,14 +7,12 @@ namespace f14.Memory {
             return this.map[path];
         }
 
-        public CreateMap(root: Models.DirectoryInfo, skipRoot: boolean): void {
-            if (!skipRoot) {
-                this.map[root.GetFullPath()] = root;
-            }
+        public MapFolder(root: Models.DirectoryInfo): void {
+            this.map[root.GetFullPath()] = root;
             for (var i of root.Folders) {
                 this.map[i.GetFullPath()] = i;
                 if (i.Folders.length > 0) {
-                    this.CreateMap(i, true);
+                    this.MapFolder(i);
                 }
             }
         }
@@ -32,7 +30,7 @@ namespace f14.Memory {
         type: string;
         sourceDirectory: string;
         destinationDirectory: string;
-        targets: Ajax.MoveTarget[];
+        targets: Ajax.BaseActionTarget[];
         ddd: string;
     }
 

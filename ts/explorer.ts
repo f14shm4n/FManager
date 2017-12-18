@@ -5,12 +5,19 @@ namespace f14.Explorer {
     function Navigate(): void {
         let path = NavigationData.GetCurrentPath();
 
-        if (Core.Config.DEBUG) {
+        let config = Core.Config;
+
+        if (config.DEBUG) {
             console.log('Navigate => ' + path);
         }
 
-        Core.Config.dataService.LoadFileSystemInfo(new Ajax.FileSystemRequestData(path), payload => {
-            UI.RenderFileStruct(payload.data.folders, payload.data.files);
+        config.ajaxRequestMap[Ajax.AjaxActionTypes.FolderStruct].execute(new Ajax.FolderStructParam(path), payload => {
+            if (payload.hasErrors()) {
+                UI.DisplayPayloadError(payload);
+            } else {
+                let result = payload as Ajax.FolderStructResult;
+                UI.RenderFileStruct(result.folders, result.files);
+            }
         });
     }
 

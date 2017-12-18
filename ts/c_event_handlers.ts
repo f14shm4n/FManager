@@ -1,23 +1,4 @@
 namespace f14.Events {
-    export class IOObjectEvents {
-        public static onItemClick(e: JQueryEventObject, self: UI.FileStructItem): void {
-            self.TriggerCheckState();
-        }
-
-        public static onItemDoubleClick(e: JQueryEventObject, self: UI.FileStructItem): void {
-            switch (self.Type) {
-                case Models.FileSystemItemType.Back:
-                    Explorer.GoBack();
-                    break;
-                case Models.FileSystemItemType.File:
-                    Explorer.OpenFile(self.FileSystemInfo.name);
-                    break;
-                case Models.FileSystemItemType.Folder:
-                    Explorer.GoForward(self.FileSystemInfo.name);
-                    break;
-            }
-        }
-    }
 
     export class ActionButtonEvents {
 
@@ -69,17 +50,18 @@ namespace f14.Events {
         public static DeleteObjects(e: JQueryEventObject): void {
             let items = UI.GetCheckedItems();
             if (items.length > 0) {
-                let popup = new UI.Popups.DeletePopup(Explorer.NavigationData.GetCurrentPath(), items.map(x => x.FileSystemInfo.name));
+                let popup = new UI.Popups.DeletePopup(Explorer.NavigationData.GetCurrentPath(),
+                    items.map(x => new Ajax.BaseActionTarget(x.FileSystemInfo.name, x.Type == Models.FileSystemItemType.File)));
                 UI.ShowPopup(popup);
             }
         }
 
         public static MoveObjects(e: JQueryEventObject): void {
-            ActionButtonEvents.PrepareItemsToMove('move');
+            ActionButtonEvents.PrepareItemsToMove(Ajax.AjaxActionTypes.Move);
         }
 
         public static CopyObjects(e: JQueryEventObject): void {
-            ActionButtonEvents.PrepareItemsToMove('copy');
+            ActionButtonEvents.PrepareItemsToMove(Ajax.AjaxActionTypes.Copy);
         }
 
         public static PasteObjects(e: JQueryEventObject): void {
@@ -98,7 +80,23 @@ namespace f14.Events {
                     console.log(op);
                 }
 
-                Core.Config.dataService.MoveObjects(Ajax.MoveRequestData.From(op), payload => {
+                var srcDir = op.sourceDirectory;
+                var dstDir = op.destinationDirectory;
+                var targets = op.targets.map((v, i, arr) => new Ajax.BaseActionTarget(v.name, v.isFile));
+                var baseParam: Ajax.BaseParam;
+                switch (op.type) {
+                    case Ajax.AjaxActionTypes.Move:
+                        baseParam = new Ajax.MoveParam(srcDir, dstDir, targets);
+                        break;
+                    case Ajax.AjaxActionTypes.Copy:
+                        baseParam = new Ajax.CopyParam(srcDir, dstDir, targets);
+                        break;
+                }
+
+                Core.Config.ajaxRequestMap[op.type].execute(baseParam, payload => {
+                    if (payload.hasErrors()) {
+                        UI.DisplayPayloadError(payload);
+                    }
                     Explorer.ReNavigate();
                 });
             }
@@ -121,7 +119,7 @@ namespace f14.Events {
                 let opData = new Memory.MoveOperationData();
                 opData.type = type;
                 opData.sourceDirectory = Explorer.NavigationData.GetCurrentPath();
-                opData.targets = items.map(x => new Ajax.MoveTarget(x.FileSystemInfo.name, x.Type == Models.FileSystemItemType.File));
+                opData.targets = items.map(x => new Ajax.BaseActionTarget(x.FileSystemInfo.name, x.Type == Models.FileSystemItemType.File));
                 Core.AppBuffer.MoveOperation = opData;
             }
         }

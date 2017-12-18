@@ -1,3 +1,3 @@
 interface IStringMap<T> {
-    [ket: string]: T;
+    [key: string]: T;
 }

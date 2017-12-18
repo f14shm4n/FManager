@@ -53,7 +53,7 @@ var f14;
 (function (f14) {
     var Models;
     (function (Models) {
-        var ActionButtonInfo = (function () {
+        var ActionButtonInfo = /** @class */ (function () {
             function ActionButtonInfo() {
             }
             return ActionButtonInfo;
@@ -65,8 +65,8 @@ var f14;
             FileSystemItemType[FileSystemItemType["File"] = 1] = "File";
             FileSystemItemType[FileSystemItemType["Back"] = 2] = "Back";
         })(FileSystemItemType = Models.FileSystemItemType || (Models.FileSystemItemType = {}));
-        var FileSystemInfo = (function () {
-            function FileSystemInfo(name, props) {
+        var BaseFileInfo = /** @class */ (function () {
+            function BaseFileInfo(name, props) {
                 this.properties = {};
                 this.name = name;
                 if (props) {
@@ -75,10 +75,10 @@ var f14;
                     }
                 }
             }
-            return FileSystemInfo;
+            return BaseFileInfo;
         }());
-        Models.FileSystemInfo = FileSystemInfo;
-        var FileInfo = (function (_super) {
+        Models.BaseFileInfo = BaseFileInfo;
+        var FileInfo = /** @class */ (function (_super) {
             __extends(FileInfo, _super);
             function FileInfo(name, folder, props) {
                 var _this = _super.call(this, name, props) || this;
@@ -89,9 +89,9 @@ var f14;
                 return _this;
             }
             return FileInfo;
-        }(FileSystemInfo));
+        }(BaseFileInfo));
         Models.FileInfo = FileInfo;
-        var DirectoryInfo = (function (_super) {
+        var DirectoryInfo = /** @class */ (function (_super) {
             __extends(DirectoryInfo, _super);
             function DirectoryInfo(name, parent, props) {
                 var _this = _super.call(this, name, props) || this;
@@ -140,7 +140,7 @@ var f14;
                 return this.GetFile(name) || this.GetFolder(name);
             };
             DirectoryInfo.prototype.AddObject = function (obj) {
-                if (obj instanceof FileSystemInfo) {
+                if (obj instanceof BaseFileInfo) {
                     this._AddObject(obj);
                 }
                 else {
@@ -182,7 +182,7 @@ var f14;
                 return undefined;
             };
             return DirectoryInfo;
-        }(FileSystemInfo));
+        }(BaseFileInfo));
         Models.DirectoryInfo = DirectoryInfo;
     })(Models = f14.Models || (f14.Models = {}));
 })(f14 || (f14 = {}));
@@ -190,225 +190,22 @@ var f14;
 "use strict";
 var f14;
 (function (f14) {
-    var Data;
-    (function (Data) {
-        var RemoteDataService = (function () {
-            function RemoteDataService(config) {
-                this.config = config;
-            }
-            RemoteDataService.prototype.GenerateActionRequestData = function (data, callback) {
-                var _this = this;
-                var ajaxSettings = {
-                    url: this.config.actionRequest,
-                    type: 'POST',
-                    contentType: 'application/json charset=utf-8',
-                    dataType: 'json',
-                    data: JSON.stringify(data),
-                    beforeSend: this.config.xhrBeforeSend,
-                    success: function (payload) {
-                        if (_this.config.DEBUG) {
-                            console.log(payload);
-                        }
-                        if (callback) {
-                            callback(payload);
-                        }
-                    }
-                };
-                return ajaxSettings;
-            };
-            RemoteDataService.prototype.GenerateUploadRequestData = function (data, callback, progress) {
-                var _this = this;
-                var ajaxSettings = {
-                    url: this.config.uploadRequest,
-                    type: 'POST',
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    data: data,
-                    dataType: 'json',
-                    beforeSend: this.config.xhrBeforeSend,
-                    xhr: function () {
-                        var xhr = $.ajaxSettings.xhr();
-                        if (xhr.upload && progress) {
-                            xhr.upload.addEventListener('progress', progress, false);
-                        }
-                        return xhr;
-                    },
-                    success: function (payload) {
-                        if (_this.config.DEBUG) {
-                            console.log(payload);
-                        }
-                        if (callback) {
-                            callback(payload);
-                        }
-                    }
-                };
-                return ajaxSettings;
-            };
-            RemoteDataService.prototype.LoadFileSystemInfo = function (requestData, callback) {
-                var settings = this.GenerateActionRequestData(requestData, callback);
-                $.ajax(settings);
-            };
-            RemoteDataService.prototype.RenameObjects = function (requestData, callback) {
-                var settings = this.GenerateActionRequestData(requestData, callback);
-                $.ajax(settings);
-            };
-            RemoteDataService.prototype.DeleteObjects = function (requestData, callback) {
-                var settings = this.GenerateActionRequestData(requestData, callback);
-                $.ajax(settings);
-            };
-            RemoteDataService.prototype.CreateObject = function (requestData, callback) {
-                var settings = this.GenerateActionRequestData(requestData, callback);
-                $.ajax(settings);
-            };
-            RemoteDataService.prototype.MoveObjects = function (data, callback) {
-                var settings = this.GenerateActionRequestData(data, callback);
-                $.ajax(settings);
-            };
-            RemoteDataService.prototype.UploadFile = function (file, callback, progress) {
-                var data = new FormData();
-                data.append('path', f14.Explorer.NavigationData.GetCurrentPath());
-                data.append('file', file);
-                var settings = this.GenerateUploadRequestData(data, callback, progress);
-                $.ajax(settings);
-            };
-            return RemoteDataService;
-        }());
-        Data.RemoteDataService = RemoteDataService;
-        var InMemoryDataService = (function () {
-            function InMemoryDataService(map) {
-                this.map = map;
-            }
-            InMemoryDataService.prototype.LoadFileSystemInfo = function (requestData, callback) {
-                var folder = this.map.GetFolderItemForPath(requestData.path);
-                if (folder === undefined) {
-                    throw "No folder info for given path: " + requestData.path;
-                }
-                var payload = {
-                    data: {
-                        folders: folder.Folders,
-                        files: folder.Files
-                    }
-                };
-                callback(payload);
-            };
-            InMemoryDataService.prototype.RenameObjects = function (requestData, callback) {
-                var renameData = requestData;
-                var folder = this.map.GetFolderItemForPath(renameData.path);
-                if (folder === undefined) {
-                    throw "No folder info for given path: " + renameData.path;
-                }
-                var renameInfo = renameData.renames[0];
-                console.log(renameInfo);
-                if (folder.FileExists(renameInfo.newName)) {
-                    var msg = f14.Utils.getString('.popup.rename.error.exist').Format(renameInfo.newName);
-                    callback({
-                        error: msg,
-                        data: { errors: [msg] }
-                    });
-                }
-                else {
-                    folder.GetObject(renameInfo.oldName).name = renameInfo.newName;
-                    callback({ success: 'Done.', data: {} });
-                }
-            };
-            InMemoryDataService.prototype.DeleteObjects = function (requestData, callback) {
-                var data = requestData;
-                var dir = this.map.GetFolderItemForPath(data.path);
-                for (var _i = 0, _a = data.objectNames; _i < _a.length; _i++) {
-                    var n = _a[_i];
-                    dir.DeleteObject(n);
-                }
-                callback({
-                    success: 'Done.',
-                    data: {
-                        affected: data.objectNames.length
-                    }
-                });
-            };
-            InMemoryDataService.prototype.CreateObject = function (requestData, callback) {
-                throw new Error("Method not implemented.");
-            };
-            InMemoryDataService.prototype.MoveObjects = function (data, callback) {
-                var payload = {};
-                var srcDir = this.map.GetFolderItemForPath(data.sourceDirectory);
-                var dstDir = this.map.GetFolderItemForPath(data.destinationDirectory);
-                var itemsToMove = [];
-                if (data.type === 'move') {
-                    for (var _i = 0, _a = data.targets; _i < _a.length; _i++) {
-                        var n = _a[_i];
-                        var o = srcDir.DeleteObject(n.name);
-                        if (o) {
-                            itemsToMove.push(o);
-                        }
-                    }
-                }
-                else if (data.type === 'copy') {
-                    for (var _b = 0, _c = data.targets; _b < _c.length; _b++) {
-                        var n = _c[_b];
-                        var o = srcDir.GetObject(n.name);
-                        if (o) {
-                            itemsToMove.push(o);
-                        }
-                    }
-                }
-                dstDir.AddObject(itemsToMove);
-                callback(payload);
-            };
-            InMemoryDataService.prototype.UploadFile = function (file, callback, progress) {
-                var interval = f14.Utils.NextInt(50, 150);
-                var total = 100;
-                var current = 0;
-                var handlerId = setInterval(function () {
-                    current += 1;
-                    progress(new ProgressEvent('counter', {
-                        lengthComputable: true,
-                        total: total,
-                        loaded: current
-                    }));
-                }, interval);
-                setTimeout(function () {
-                    clearInterval(handlerId);
-                    var r = Math.round(Math.random());
-                    if (r === 0) {
-                        callback({
-                            error: 'Fail.'
-                        });
-                    }
-                    else {
-                        callback({
-                            success: 'Done.'
-                        });
-                    }
-                }, interval * total);
-            };
-            return InMemoryDataService;
-        }());
-        Data.InMemoryDataService = InMemoryDataService;
-    })(Data = f14.Data || (f14.Data = {}));
-})(f14 || (f14 = {}));
-
-"use strict";
-var f14;
-(function (f14) {
     var Memory;
     (function (Memory) {
-        var InMemoryNavigationMap = (function () {
+        var InMemoryNavigationMap = /** @class */ (function () {
             function InMemoryNavigationMap() {
                 this.map = {};
             }
             InMemoryNavigationMap.prototype.GetFolderItemForPath = function (path) {
                 return this.map[path];
             };
-            InMemoryNavigationMap.prototype.CreateMap = function (root, skipRoot) {
-                if (!skipRoot) {
-                    this.map[root.GetFullPath()] = root;
-                }
+            InMemoryNavigationMap.prototype.MapFolder = function (root) {
+                this.map[root.GetFullPath()] = root;
                 for (var _i = 0, _a = root.Folders; _i < _a.length; _i++) {
                     var i = _a[_i];
                     this.map[i.GetFullPath()] = i;
                     if (i.Folders.length > 0) {
-                        this.CreateMap(i, true);
+                        this.MapFolder(i);
                     }
                 }
             };
@@ -422,13 +219,13 @@ var f14;
             return InMemoryNavigationMap;
         }());
         Memory.InMemoryNavigationMap = InMemoryNavigationMap;
-        var MoveOperationData = (function () {
+        var MoveOperationData = /** @class */ (function () {
             function MoveOperationData() {
             }
             return MoveOperationData;
         }());
         Memory.MoveOperationData = MoveOperationData;
-        var AppBuffer = (function () {
+        var AppBuffer = /** @class */ (function () {
             function AppBuffer() {
             }
             return AppBuffer;
@@ -442,7 +239,7 @@ var f14;
 (function (f14) {
     var Navigation;
     (function (Navigation) {
-        var NavigationStack = (function () {
+        var NavigationStack = /** @class */ (function () {
             function NavigationStack() {
                 this.pathStack = [];
             }
@@ -483,106 +280,386 @@ var f14;
 (function (f14) {
     var Ajax;
     (function (Ajax) {
-        var ResponseData = (function () {
-            function ResponseData() {
-                this.error = undefined;
-                this.success = undefined;
+        var AjaxActionTypes = /** @class */ (function () {
+            function AjaxActionTypes() {
             }
-            return ResponseData;
+            AjaxActionTypes.FolderStruct = 'struct';
+            AjaxActionTypes.Rename = 'rename';
+            AjaxActionTypes.Delete = 'delete';
+            AjaxActionTypes.Move = 'move';
+            AjaxActionTypes.Copy = 'copy';
+            AjaxActionTypes.CreateFolder = 'create_folder';
+            AjaxActionTypes.UploadFile = "upload_file";
+            return AjaxActionTypes;
         }());
-        Ajax.ResponseData = ResponseData;
-        var RenameFileInfo = (function () {
-            function RenameFileInfo(oldName, newName, isFile) {
-                this.oldName = oldName;
-                this.newName = newName;
-                this.isFile = isFile;
-            }
-            return RenameFileInfo;
-        }());
-        Ajax.RenameFileInfo = RenameFileInfo;
-        var MoveTarget = (function () {
-            function MoveTarget(name, isFile) {
+        Ajax.AjaxActionTypes = AjaxActionTypes;
+        var BaseActionTarget = /** @class */ (function () {
+            function BaseActionTarget(name, isFile) {
                 this.name = name;
                 this.isFile = isFile;
             }
-            return MoveTarget;
+            return BaseActionTarget;
         }());
-        Ajax.MoveTarget = MoveTarget;
-        var BaseRequestData = (function () {
-            function BaseRequestData(type) {
-                this.type = type;
-            }
-            return BaseRequestData;
-        }());
-        Ajax.BaseRequestData = BaseRequestData;
-        var FileSystemRequestData = (function (_super) {
-            __extends(FileSystemRequestData, _super);
-            function FileSystemRequestData(folderPath) {
-                var _this = _super.call(this, 'struct') || this;
-                _this.path = folderPath;
+        Ajax.BaseActionTarget = BaseActionTarget;
+        var RenameActionTarget = /** @class */ (function (_super) {
+            __extends(RenameActionTarget, _super);
+            function RenameActionTarget(oldName, newName, isFile) {
+                var _this = _super.call(this, newName, isFile) || this;
+                _this.oldName = oldName;
                 return _this;
             }
-            return FileSystemRequestData;
-        }(BaseRequestData));
-        Ajax.FileSystemRequestData = FileSystemRequestData;
-        var RenameRequestData = (function (_super) {
-            __extends(RenameRequestData, _super);
-            function RenameRequestData(folderPath) {
-                var _this = _super.call(this, 'rename') || this;
-                _this.renames = [];
-                _this.path = folderPath;
-                return _this;
+            return RenameActionTarget;
+        }(BaseActionTarget));
+        Ajax.RenameActionTarget = RenameActionTarget;
+    })(Ajax = f14.Ajax || (f14.Ajax = {}));
+})(f14 || (f14 = {}));
+
+"use strict";
+var f14;
+(function (f14) {
+    var Ajax;
+    (function (Ajax) {
+        var BaseParam = /** @class */ (function () {
+            function BaseParam() {
             }
-            RenameRequestData.prototype.AddRenameItem = function (oldName, newName, isFile) {
-                this.renames.push(new RenameFileInfo(oldName, newName, isFile));
-            };
-            RenameRequestData.prototype.HasData = function () {
-                return this.renames.length > 0;
-            };
-            return RenameRequestData;
-        }(BaseRequestData));
-        Ajax.RenameRequestData = RenameRequestData;
-        var DeleteRequestData = (function (_super) {
-            __extends(DeleteRequestData, _super);
-            function DeleteRequestData(folderPath, items) {
-                var _this = _super.call(this, 'delete') || this;
-                _this.objectNames = [];
-                _this.path = folderPath;
-                if (items && items.length > 0) {
-                    items.forEach(function (x) { return _this.objectNames.push(x); });
+            return BaseParam;
+        }());
+        Ajax.BaseParam = BaseParam;
+        var TargetCollectionParam = /** @class */ (function (_super) {
+            __extends(TargetCollectionParam, _super);
+            function TargetCollectionParam(targets) {
+                var _this = _super.call(this) || this;
+                _this.targets = [];
+                if (targets) {
+                    _this.targets = targets;
                 }
                 return _this;
             }
-            DeleteRequestData.prototype.Add = function (name) {
-                this.objectNames.push(name);
-            };
-            return DeleteRequestData;
-        }(BaseRequestData));
-        Ajax.DeleteRequestData = DeleteRequestData;
-        var MoveRequestData = (function (_super) {
-            __extends(MoveRequestData, _super);
-            function MoveRequestData(type, srcDir, destDir, targets) {
-                var _this = _super.call(this, type) || this;
+            return TargetCollectionParam;
+        }(BaseParam));
+        Ajax.TargetCollectionParam = TargetCollectionParam;
+        var MoveParam = /** @class */ (function (_super) {
+            __extends(MoveParam, _super);
+            function MoveParam(srcDir, destDir, targets) {
+                var _this = _super.call(this, targets) || this;
                 _this.overwrite = false;
                 _this.sourceDirectory = srcDir;
                 _this.destinationDirectory = destDir;
-                _this.targets = targets;
                 return _this;
             }
-            MoveRequestData.From = function (data) {
-                return new MoveRequestData(data.type, data.sourceDirectory, data.destinationDirectory, data.targets);
-            };
-            return MoveRequestData;
-        }(BaseRequestData));
-        Ajax.MoveRequestData = MoveRequestData;
-        var CreateRequestData = (function (_super) {
-            __extends(CreateRequestData, _super);
-            function CreateRequestData(type) {
-                return _super.call(this, type) || this;
+            return MoveParam;
+        }(TargetCollectionParam));
+        Ajax.MoveParam = MoveParam;
+        var CopyParam = /** @class */ (function (_super) {
+            __extends(CopyParam, _super);
+            function CopyParam(srcDir, destDir, targets) {
+                return _super.call(this, srcDir, destDir, targets) || this;
             }
-            return CreateRequestData;
-        }(BaseRequestData));
-        Ajax.CreateRequestData = CreateRequestData;
+            return CopyParam;
+        }(MoveParam));
+        Ajax.CopyParam = CopyParam;
+        var DeleteParam = /** @class */ (function (_super) {
+            __extends(DeleteParam, _super);
+            function DeleteParam(folderPath, targets) {
+                var _this = _super.call(this, targets) || this;
+                _this.currentFolderPath = folderPath;
+                return _this;
+            }
+            return DeleteParam;
+        }(TargetCollectionParam));
+        Ajax.DeleteParam = DeleteParam;
+        var CreateFolderParam = /** @class */ (function (_super) {
+            __extends(CreateFolderParam, _super);
+            function CreateFolderParam(workFolder, newObjectName) {
+                var _this = _super.call(this) || this;
+                _this.currentFolderPath = workFolder;
+                _this.name = newObjectName;
+                return _this;
+            }
+            return CreateFolderParam;
+        }(BaseParam));
+        Ajax.CreateFolderParam = CreateFolderParam;
+        var RenameParam = /** @class */ (function (_super) {
+            __extends(RenameParam, _super);
+            function RenameParam(folderPath, targets) {
+                var _this = _super.call(this, targets) || this;
+                _this.currentFolderPath = folderPath;
+                return _this;
+            }
+            RenameParam.prototype.AddRenameItem = function (oldName, newName, isFile) {
+                this.targets.push(new Ajax.RenameActionTarget(oldName, newName, isFile));
+            };
+            RenameParam.prototype.HasData = function () {
+                return this.targets.length > 0;
+            };
+            return RenameParam;
+        }(TargetCollectionParam));
+        Ajax.RenameParam = RenameParam;
+        var FolderStructParam = /** @class */ (function (_super) {
+            __extends(FolderStructParam, _super);
+            function FolderStructParam(folderPath, fileExtensions) {
+                var _this = _super.call(this) || this;
+                _this.fileExtensions = [];
+                _this.currentFolderPath = folderPath;
+                _this.fileExtensions = fileExtensions;
+                return _this;
+            }
+            return FolderStructParam;
+        }(BaseParam));
+        Ajax.FolderStructParam = FolderStructParam;
+        var UploadFileParam = /** @class */ (function (_super) {
+            __extends(UploadFileParam, _super);
+            function UploadFileParam(folderPath, file, progress) {
+                var _this = _super.call(this) || this;
+                _this.currentFolderPath = folderPath;
+                _this.file = file;
+                _this.progressChanged = progress;
+                return _this;
+            }
+            UploadFileParam.prototype.makeFormData = function () {
+                var data = new FormData();
+                data.append('currentFolderPath', this.currentFolderPath);
+                data.append('file', this.file);
+                return data;
+            };
+            return UploadFileParam;
+        }(BaseParam));
+        Ajax.UploadFileParam = UploadFileParam;
+    })(Ajax = f14.Ajax || (f14.Ajax = {}));
+})(f14 || (f14 = {}));
+
+"use strict";
+var f14;
+(function (f14) {
+    var Ajax;
+    (function (Ajax) {
+        var BaseResult = /** @class */ (function () {
+            function BaseResult() {
+                this.errors = [];
+            }
+            BaseResult.prototype.hasErrors = function () {
+                if (this.errors && this.errors.length > 0) {
+                    return true;
+                }
+                return false;
+            };
+            return BaseResult;
+        }());
+        Ajax.BaseResult = BaseResult;
+        var AffectedResult = /** @class */ (function (_super) {
+            __extends(AffectedResult, _super);
+            function AffectedResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return AffectedResult;
+        }(BaseResult));
+        Ajax.AffectedResult = AffectedResult;
+        var MoveResult = /** @class */ (function (_super) {
+            __extends(MoveResult, _super);
+            function MoveResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return MoveResult;
+        }(BaseResult));
+        Ajax.MoveResult = MoveResult;
+        var CopyResult = /** @class */ (function (_super) {
+            __extends(CopyResult, _super);
+            function CopyResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return CopyResult;
+        }(MoveResult));
+        Ajax.CopyResult = CopyResult;
+        var DeleteResult = /** @class */ (function (_super) {
+            __extends(DeleteResult, _super);
+            function DeleteResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return DeleteResult;
+        }(AffectedResult));
+        Ajax.DeleteResult = DeleteResult;
+        var CreateFolderResult = /** @class */ (function (_super) {
+            __extends(CreateFolderResult, _super);
+            function CreateFolderResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return CreateFolderResult;
+        }(BaseResult));
+        Ajax.CreateFolderResult = CreateFolderResult;
+        var FolderStructResult = /** @class */ (function (_super) {
+            __extends(FolderStructResult, _super);
+            function FolderStructResult() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.folders = [];
+                _this.files = [];
+                return _this;
+            }
+            return FolderStructResult;
+        }(BaseResult));
+        Ajax.FolderStructResult = FolderStructResult;
+        var RenameResult = /** @class */ (function (_super) {
+            __extends(RenameResult, _super);
+            function RenameResult() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.renamedObjects = [];
+                return _this;
+            }
+            return RenameResult;
+        }(AffectedResult));
+        Ajax.RenameResult = RenameResult;
+        var UploadFileResult = /** @class */ (function (_super) {
+            __extends(UploadFileResult, _super);
+            function UploadFileResult() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            return UploadFileResult;
+        }(BaseResult));
+        Ajax.UploadFileResult = UploadFileResult;
+    })(Ajax = f14.Ajax || (f14.Ajax = {}));
+})(f14 || (f14 = {}));
+
+"use strict";
+var f14;
+(function (f14) {
+    var Ajax;
+    (function (Ajax) {
+        var BaseOperationRequest = /** @class */ (function () {
+            function BaseOperationRequest(config) {
+                this.config = config;
+            }
+            BaseOperationRequest.prototype.execute = function (param, callback) {
+                var data = this.makeAjaxData(this.getUrl(), param, callback);
+                $.ajax(data);
+            };
+            BaseOperationRequest.prototype.makeAjaxData = function (url, param, callback) {
+                var _this = this;
+                var ajaxSettings = {
+                    url: url,
+                    type: 'POST',
+                    contentType: 'application/json charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(param),
+                    beforeSend: this.config.xhrBeforeSend,
+                    success: function (payload) {
+                        if (_this.config.DEBUG) {
+                            console.log(payload);
+                        }
+                        if (callback) {
+                            callback(payload);
+                        }
+                    }
+                };
+                return ajaxSettings;
+            };
+            return BaseOperationRequest;
+        }());
+        Ajax.BaseOperationRequest = BaseOperationRequest;
+        var CopyRequest = /** @class */ (function (_super) {
+            __extends(CopyRequest, _super);
+            function CopyRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            CopyRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Copy];
+            };
+            return CopyRequest;
+        }(BaseOperationRequest));
+        Ajax.CopyRequest = CopyRequest;
+        var MoveRequest = /** @class */ (function (_super) {
+            __extends(MoveRequest, _super);
+            function MoveRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MoveRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Move];
+            };
+            return MoveRequest;
+        }(BaseOperationRequest));
+        Ajax.MoveRequest = MoveRequest;
+        var CreateFolderRequest = /** @class */ (function (_super) {
+            __extends(CreateFolderRequest, _super);
+            function CreateFolderRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            CreateFolderRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.CreateFolder];
+            };
+            return CreateFolderRequest;
+        }(BaseOperationRequest));
+        Ajax.CreateFolderRequest = CreateFolderRequest;
+        var DeleteRequest = /** @class */ (function (_super) {
+            __extends(DeleteRequest, _super);
+            function DeleteRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            DeleteRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Delete];
+            };
+            return DeleteRequest;
+        }(BaseOperationRequest));
+        Ajax.DeleteRequest = DeleteRequest;
+        var FolderStructRequest = /** @class */ (function (_super) {
+            __extends(FolderStructRequest, _super);
+            function FolderStructRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            FolderStructRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.FolderStruct];
+            };
+            return FolderStructRequest;
+        }(BaseOperationRequest));
+        Ajax.FolderStructRequest = FolderStructRequest;
+        var RenameRequest = /** @class */ (function (_super) {
+            __extends(RenameRequest, _super);
+            function RenameRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            RenameRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Rename];
+            };
+            return RenameRequest;
+        }(BaseOperationRequest));
+        Ajax.RenameRequest = RenameRequest;
+        var UploadFileRequest = /** @class */ (function (_super) {
+            __extends(UploadFileRequest, _super);
+            function UploadFileRequest() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            UploadFileRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[Ajax.AjaxActionTypes.UploadFile];
+            };
+            UploadFileRequest.prototype.makeAjaxData = function (url, param, callback) {
+                var _this = this;
+                var ajaxSettings = {
+                    url: url,
+                    type: 'POST',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data: param.makeFormData(),
+                    dataType: 'json',
+                    beforeSend: this.config.xhrBeforeSend,
+                    xhr: function () {
+                        var xhr = $.ajaxSettings.xhr();
+                        if (xhr.upload && param.progressChanged) {
+                            xhr.upload.addEventListener('progress', param.progressChanged, false);
+                        }
+                        return xhr;
+                    },
+                    success: function (payload) {
+                        if (_this.config.DEBUG) {
+                            console.log(payload);
+                        }
+                        if (callback) {
+                            callback(payload);
+                        }
+                    }
+                };
+                return ajaxSettings;
+            };
+            return UploadFileRequest;
+        }(BaseOperationRequest));
+        Ajax.UploadFileRequest = UploadFileRequest;
     })(Ajax = f14.Ajax || (f14.Ajax = {}));
 })(f14 || (f14 = {}));
 
@@ -591,29 +668,7 @@ var f14;
 (function (f14) {
     var Events;
     (function (Events) {
-        var IOObjectEvents = (function () {
-            function IOObjectEvents() {
-            }
-            IOObjectEvents.onItemClick = function (e, self) {
-                self.TriggerCheckState();
-            };
-            IOObjectEvents.onItemDoubleClick = function (e, self) {
-                switch (self.Type) {
-                    case f14.Models.FileSystemItemType.Back:
-                        f14.Explorer.GoBack();
-                        break;
-                    case f14.Models.FileSystemItemType.File:
-                        f14.Explorer.OpenFile(self.FileSystemInfo.name);
-                        break;
-                    case f14.Models.FileSystemItemType.Folder:
-                        f14.Explorer.GoForward(self.FileSystemInfo.name);
-                        break;
-                }
-            };
-            return IOObjectEvents;
-        }());
-        Events.IOObjectEvents = IOObjectEvents;
-        var ActionButtonEvents = (function () {
+        var ActionButtonEvents = /** @class */ (function () {
             function ActionButtonEvents() {
             }
             ActionButtonEvents.AcceptSelection = function (e) {
@@ -656,15 +711,15 @@ var f14;
             ActionButtonEvents.DeleteObjects = function (e) {
                 var items = f14.UI.GetCheckedItems();
                 if (items.length > 0) {
-                    var popup = new f14.UI.Popups.DeletePopup(f14.Explorer.NavigationData.GetCurrentPath(), items.map(function (x) { return x.FileSystemInfo.name; }));
+                    var popup = new f14.UI.Popups.DeletePopup(f14.Explorer.NavigationData.GetCurrentPath(), items.map(function (x) { return new f14.Ajax.BaseActionTarget(x.FileSystemInfo.name, x.Type == f14.Models.FileSystemItemType.File); }));
                     f14.UI.ShowPopup(popup);
                 }
             };
             ActionButtonEvents.MoveObjects = function (e) {
-                ActionButtonEvents.PrepareItemsToMove('move');
+                ActionButtonEvents.PrepareItemsToMove(f14.Ajax.AjaxActionTypes.Move);
             };
             ActionButtonEvents.CopyObjects = function (e) {
-                ActionButtonEvents.PrepareItemsToMove('copy');
+                ActionButtonEvents.PrepareItemsToMove(f14.Ajax.AjaxActionTypes.Copy);
             };
             ActionButtonEvents.PasteObjects = function (e) {
                 if (f14.Core.AppBuffer.MoveOperation) {
@@ -679,7 +734,22 @@ var f14;
                     if (f14.Core.Config.DEBUG) {
                         console.log(op);
                     }
-                    f14.Core.Config.dataService.MoveObjects(f14.Ajax.MoveRequestData.From(op), function (payload) {
+                    var srcDir = op.sourceDirectory;
+                    var dstDir = op.destinationDirectory;
+                    var targets = op.targets.map(function (v, i, arr) { return new f14.Ajax.BaseActionTarget(v.name, v.isFile); });
+                    var baseParam;
+                    switch (op.type) {
+                        case f14.Ajax.AjaxActionTypes.Move:
+                            baseParam = new f14.Ajax.MoveParam(srcDir, dstDir, targets);
+                            break;
+                        case f14.Ajax.AjaxActionTypes.Copy:
+                            baseParam = new f14.Ajax.CopyParam(srcDir, dstDir, targets);
+                            break;
+                    }
+                    f14.Core.Config.ajaxRequestMap[op.type].execute(baseParam, function (payload) {
+                        if (payload.hasErrors()) {
+                            f14.UI.DisplayPayloadError(payload);
+                        }
                         f14.Explorer.ReNavigate();
                     });
                 }
@@ -700,7 +770,7 @@ var f14;
                     var opData = new f14.Memory.MoveOperationData();
                     opData.type = type;
                     opData.sourceDirectory = f14.Explorer.NavigationData.GetCurrentPath();
-                    opData.targets = items.map(function (x) { return new f14.Ajax.MoveTarget(x.FileSystemInfo.name, x.Type == f14.Models.FileSystemItemType.File); });
+                    opData.targets = items.map(function (x) { return new f14.Ajax.BaseActionTarget(x.FileSystemInfo.name, x.Type == f14.Models.FileSystemItemType.File); });
                     f14.Core.AppBuffer.MoveOperation = opData;
                 }
             };
@@ -715,30 +785,45 @@ var f14;
 (function (f14) {
     var Core;
     (function (Core) {
-        var Configuration = (function () {
+        var Configuration = /** @class */ (function () {
             function Configuration() {
                 this.actionButtons = [];
                 this.allowShortcuts = false;
                 this.DEBUG = false;
+                this.MOCK = false;
+                this.endPointUrlMap = {};
+                this.ajaxRequestMap = {};
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Copy] = new f14.Ajax.CopyRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Move] = new f14.Ajax.MoveRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.CreateFolder] = new f14.Ajax.CreateFolderRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Delete] = new f14.Ajax.DeleteRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.FolderStruct] = new f14.Ajax.FolderStructRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Rename] = new f14.Ajax.RenameRequest(this);
+                this.ajaxRequestMap[f14.Ajax.AjaxActionTypes.UploadFile] = new f14.Ajax.UploadFileRequest(this);
             }
             return Configuration;
         }());
         Core.Configuration = Configuration;
-        Core.L10NPrefix = 'f14fm';
-        Core.Title = 'FManager';
-        Core.TitleShort = 'FM';
+        Core.L10NPrefix = "f14fm";
+        Core.Title = "FManager";
+        Core.TitleShort = "FM";
         Core.Config = new Configuration();
         Core.AppBuffer = new f14.Memory.AppBuffer();
         var shortcutsObjects = {};
-        function Configure(settings) {
+        function configure(settings) {
             if (settings) {
                 $.extend(true, Core.Config, settings);
             }
-            CheckRequiredValues();
+            if (!Core.Config.MOCK) {
+                checkRequiredValues();
+            }
+            else {
+                useMockData();
+            }
             if (Core.Config.allowShortcuts) {
                 // TODO: Shorcuts
-                window.addEventListener('keydown', function (e) {
-                    var cmd = FindCommandForShortcut([]);
+                window.addEventListener("keydown", function (e) {
+                    var cmd = findCommandForShortcut([]);
                     if (cmd) {
                         cmd.Execute();
                     }
@@ -746,24 +831,33 @@ var f14;
                 }, false);
             }
         }
-        Core.Configure = Configure;
-        function RegisterShortcut(cmd) {
+        Core.configure = configure;
+        function registerShortcut(cmd) {
             shortcutsObjects[cmd.shortcut] = cmd;
         }
-        Core.RegisterShortcut = RegisterShortcut;
-        function FindCommandForShortcut(keys) {
+        Core.registerShortcut = registerShortcut;
+        function findCommandForShortcut(keys) {
             return undefined;
         }
-        function CheckRequiredValues() {
+        function checkRequiredValues() {
             if (Core.Config.rootFolder === undefined) {
                 throw "Root folder must be set.";
             }
-            if (Core.Config.dataService === undefined) {
-                if (Core.Config.DEBUG) {
-                    console.log('The data service is not specified, configure the data service as remote.');
-                }
-                Core.Config.dataService = new f14.Data.RemoteDataService(Core.Config);
+            if (Core.Config.endPointUrlMap === undefined || Object.keys(Core.Config.endPointUrlMap).length == 0) {
+                throw "The map with end point urls is empty or null.";
             }
+        }
+        function useMockData() {
+            Core.Config.endPointUrlMap[f14.Ajax.AjaxActionTypes.UploadFile] = "action/upload/file";
+            Core.Config.inMemoryData = new f14.Mock.MockNavigationMap();
+            var ajaxMap = Core.Config.ajaxRequestMap;
+            ajaxMap[f14.Ajax.AjaxActionTypes.Copy] = new f14.Mock.MockCopyRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.Move] = new f14.Mock.MockMoveRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.CreateFolder] = new f14.Mock.MockCreateFolderRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.Delete] = new f14.Mock.MockDeleteRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.FolderStruct] = new f14.Mock.MockFolderStructRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.Rename] = new f14.Mock.MockRenameRequest(Core.Config);
+            ajaxMap[f14.Ajax.AjaxActionTypes.UploadFile] = new f14.Mock.MockUploadFileRequest(Core.Config);
         }
     })(Core = f14.Core || (f14.Core = {}));
 })(f14 || (f14 = {}));
@@ -774,55 +868,54 @@ var f14;
     var Localization;
     (function (Localization) {
         function Init() {
-            l10n.addLocaleMap({
-                'ru': {
-                    'f14fm.io.accept': 'Принять',
-                    'f14fm.io.select-all': 'Выбрать все',
-                    'f14fm.io.clear-selection': 'Снять выделение',
-                    'f14fm.io.inverse-selection': 'Обратить выделение',
-                    'f14fm.io.upload': 'Загрузить файлы',
-                    'f14fm.io.select.files': 'Выбрать файлы',
-                    'f14fm.io.delete': 'Удалить',
-                    'f14fm.io.create': 'Создать',
-                    'f14fm.io.rename': 'Переименовать',
-                    'f14fm.io.move': 'Переместить',
-                    'f14fm.io.copy': 'Копировать',
-                    'f14fm.io.paste': 'Вставить',
-                    'f14fm.apply': 'Применить',
-                    'f14fm.close': 'Закрыть',
-                    'f14fm.cancel': 'Отмена',
-                    'f14fm.popup.delete.title': 'Удалить файлы и папки...',
-                    'f14fm.popup.delete.desc': 'Вы уверены что хотите удалить эти файлы\\папки?',
-                    'f14fm.popup.upload.title': 'Загрузка файлов',
-                    'f14fm.popup.rename.error.exist': "\u0424\u0430\u0439\u043B \u0441 \u0442\u0430\u043A\u0438\u043C \u0438\u043C\u0435\u043D\u0435\u043C \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442! \u0418\u043C\u044F \u0444\u0430\u0439\u043B\u0430: {0}",
-                    'f14fm.toast.msg.selection.empty': 'Ни один файл не выбран.',
-                    'f14fm.toast.msg.same.folder': 'Папка назначения совпадает с исходной папкой.',
-                    'f14fm.toast.delete.count.format': 'Удалено {0} объектов.',
-                },
-                'en': {
-                    'f14fm.io.accept': 'Done',
-                    'f14fm.io.select-all': 'Select All',
-                    'f14fm.io.clear-selection': 'Clear Selection',
-                    'f14fm.io.inverse-selection': 'Inverse Selection',
-                    'f14fm.io.upload': 'Upload Files',
-                    'f14fm.io.select.files': 'Select files',
-                    'f14fm.io.delete': 'Delete',
-                    'f14fm.io.create': 'Create',
-                    'f14fm.io.rename': 'Rename',
-                    'f14fm.io.move': 'Move',
-                    'f14fm.io.copy': 'Copy',
-                    'f14fm.io.paste': 'Paste',
-                    'f14fm.io.apply': 'Apply',
-                    'f14fm.close': 'Close',
-                    'f14fm.cancel': 'Cancel',
-                    'f14fm.popup.delete.title': 'Delete files and folders...',
-                    'f14fm.popup.delete.desc': 'Are you sure you want to delete this files\\folders?',
-                    'f14fm.popup.upload.title': 'File uploader',
-                    'f14fm.popup.rename.error.exist': "A File with this name already exists! File name: {0}",
-                    'f14fm.toast.msg.selection.empty': 'No selected files.',
-                    'f14fm.toast.msg.same.folder': 'Destination folder coincides with the source folder.',
-                    'f14fm.toast.delete.count.format': '{0} items deleted.',
-                }
+            var l10nProvider = f14.Core.Config.L10NProvider || f14.L10n.Config.L10nProvider;
+            l10nProvider.AddLocale('ru', {
+                'f14fm.io.accept': 'Принять',
+                'f14fm.io.select-all': 'Выбрать все',
+                'f14fm.io.clear-selection': 'Снять выделение',
+                'f14fm.io.inverse-selection': 'Обратить выделение',
+                'f14fm.io.upload': 'Загрузить файлы',
+                'f14fm.io.select.files': 'Выбрать файлы',
+                'f14fm.io.delete': 'Удалить',
+                'f14fm.io.create': 'Создать',
+                'f14fm.io.rename': 'Переименовать',
+                'f14fm.io.move': 'Переместить',
+                'f14fm.io.copy': 'Копировать',
+                'f14fm.io.paste': 'Вставить',
+                'f14fm.apply': 'Применить',
+                'f14fm.close': 'Закрыть',
+                'f14fm.cancel': 'Отмена',
+                'f14fm.popup.delete.title': 'Удалить файлы и папки...',
+                'f14fm.popup.delete.desc': 'Вы уверены что хотите удалить эти файлы\\папки?',
+                'f14fm.popup.upload.title': 'Загрузка файлов',
+                'f14fm.popup.rename.error.exist': "\u0424\u0430\u0439\u043B \u0441 \u0442\u0430\u043A\u0438\u043C \u0438\u043C\u0435\u043D\u0435\u043C \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442! \u0418\u043C\u044F \u0444\u0430\u0439\u043B\u0430: {0}",
+                'f14fm.toast.msg.selection.empty': 'Ни один файл не выбран.',
+                'f14fm.toast.msg.same.folder': 'Папка назначения совпадает с исходной папкой.',
+                'f14fm.toast.delete.count.format': 'Удалено {0} объектов.',
+            });
+            l10nProvider.AddLocale('en', {
+                'f14fm.io.accept': 'Done',
+                'f14fm.io.select-all': 'Select All',
+                'f14fm.io.clear-selection': 'Clear Selection',
+                'f14fm.io.inverse-selection': 'Inverse Selection',
+                'f14fm.io.upload': 'Upload Files',
+                'f14fm.io.select.files': 'Select files',
+                'f14fm.io.delete': 'Delete',
+                'f14fm.io.create': 'Create',
+                'f14fm.io.rename': 'Rename',
+                'f14fm.io.move': 'Move',
+                'f14fm.io.copy': 'Copy',
+                'f14fm.io.paste': 'Paste',
+                'f14fm.io.apply': 'Apply',
+                'f14fm.close': 'Close',
+                'f14fm.cancel': 'Cancel',
+                'f14fm.popup.delete.title': 'Delete files and folders...',
+                'f14fm.popup.delete.desc': 'Are you sure you want to delete this files\\folders?',
+                'f14fm.popup.upload.title': 'File uploader',
+                'f14fm.popup.rename.error.exist': "A File with this name already exists! File name: {0}",
+                'f14fm.toast.msg.selection.empty': 'No selected files.',
+                'f14fm.toast.msg.same.folder': 'Destination folder coincides with the source folder.',
+                'f14fm.toast.delete.count.format': '{0} items deleted.',
             });
         }
         Localization.Init = Init;
@@ -835,7 +928,8 @@ var f14;
     var Utils;
     (function (Utils) {
         function getString(key) {
-            return l10n.getString(f14.Core.L10NPrefix + key);
+            var l10nProvider = f14.Core.Config.L10NProvider || f14.L10n.Config.L10nProvider;
+            return l10nProvider.GetString(f14.Core.L10NPrefix + key);
         }
         Utils.getString = getString;
         function NextInt(min, max) {
@@ -924,6 +1018,15 @@ var f14;
             _uIContainer.ToastContainer.Hide();
         }
         UI.HideToast = HideToast;
+        function DisplayPayloadError(payload) {
+            if (payload.hasErrors()) {
+                UI.ShowToast({
+                    message: payload.errors.join('\n'),
+                    title: 'Ajax response'
+                });
+            }
+        }
+        UI.DisplayPayloadError = DisplayPayloadError;
         // Private API
         function PrepareMarkup() {
             if (_uIContainer) {
@@ -950,7 +1053,7 @@ var f14;
                 }));
             }
             // Show the upload button if uploadUrl is set.
-            if (f14.Core.Config.uploadRequest) {
+            if (f14.Core.Config.endPointUrlMap[f14.Ajax.AjaxActionTypes.UploadFile]) {
                 actionPanel.AddButton(UI.ActionButton.Create({
                     classes: 'btn-primary',
                     icon: 'mdl2-upload',
@@ -1017,7 +1120,7 @@ var f14;
         /**
          * Main UI container.
          */
-        var UIContainer = (function () {
+        var UIContainer = /** @class */ (function () {
             function UIContainer() {
                 this.$This = $('<div>').addClass('ui-container');
                 this.$This.append((this.ToastContainer = new ToasContainer()).$This);
@@ -1030,7 +1133,7 @@ var f14;
         /**
          * Toast notification container.
          */
-        var ToasContainer = (function () {
+        var ToasContainer = /** @class */ (function () {
             function ToasContainer() {
                 this.isShown = false;
                 this.$This = $('<div>').addClass('ui-toast-container');
@@ -1090,7 +1193,7 @@ var f14;
         /**
          * Main popup container.
          */
-        var PopupContainer = (function () {
+        var PopupContainer = /** @class */ (function () {
             function PopupContainer() {
                 this.$This = $('<div>').addClass('ui-popup-container');
                 this.$This.css('opacity', '0');
@@ -1127,7 +1230,7 @@ var f14;
         /**
          * Container for other panels.
          */
-        var ContentPanel = (function () {
+        var ContentPanel = /** @class */ (function () {
             function ContentPanel() {
                 this.$This = $('<div>').addClass('ui-content-panel');
                 this.$This.append((this.FileActionPanel = new FileActionPanel()).$This);
@@ -1139,7 +1242,7 @@ var f14;
         /**
          * The Panels with file actions.
          */
-        var FileActionPanel = (function () {
+        var FileActionPanel = /** @class */ (function () {
             function FileActionPanel() {
                 this.$This = $('<div>').addClass('ui-file-action-panel');
                 this.$This.append((this.LogoButton = new UI.LogoButton()).$This);
@@ -1151,7 +1254,7 @@ var f14;
         /**
          * The Panel for represent file system.
          */
-        var FileStructPanel = (function () {
+        var FileStructPanel = /** @class */ (function () {
             function FileStructPanel() {
                 this.Items = [];
                 this.$This = $('<div>').addClass('ui-file-struct-panel');
@@ -1188,7 +1291,7 @@ var f14;
         /**
          * Container for action buttons.
          */
-        var ActionPanel = (function () {
+        var ActionPanel = /** @class */ (function () {
             function ActionPanel() {
                 this.Buttons = [];
                 this.$This = $('<div>').addClass('ui-action-buttons-panel');
@@ -1203,7 +1306,7 @@ var f14;
         /**
          * Represents the single file or folder item.
          */
-        var FileStructItem = (function () {
+        var FileStructItem = /** @class */ (function () {
             function FileStructItem(type, data) {
                 var _this = this;
                 this.CheckState = false;
@@ -1211,8 +1314,20 @@ var f14;
                 this.FileSystemInfo = data;
                 this.$This = $('<div>')
                     .addClass('ui-file-struct-item ui-input-group')
-                    .on('click', function (e) { return f14.Events.IOObjectEvents.onItemClick(e, _this); })
-                    .on('dblclick', function (e) { return f14.Events.IOObjectEvents.onItemDoubleClick(e, _this); });
+                    .on('click', function (e) { return _this.TriggerCheckState(); })
+                    .on('dblclick', function (e) {
+                    switch (_this.Type) {
+                        case f14.Models.FileSystemItemType.Back:
+                            f14.Explorer.GoBack();
+                            break;
+                        case f14.Models.FileSystemItemType.File:
+                            f14.Explorer.OpenFile(_this.FileSystemInfo.name);
+                            break;
+                        case f14.Models.FileSystemItemType.Folder:
+                            f14.Explorer.GoForward(_this.FileSystemInfo.name);
+                            break;
+                    }
+                });
                 this.IconContainer = $('<div>').addClass('ui-item-icon');
                 this.NameContainer;
                 this.Icon = $('<i>');
@@ -1295,7 +1410,7 @@ var f14;
         /**
          * The button base element.
          */
-        var BaseButton = (function () {
+        var BaseButton = /** @class */ (function () {
             function BaseButton(text, icon, classes) {
                 this.$This = $('<div>').addClass('ui-btn');
                 if (classes && classes.length > 0) {
@@ -1345,7 +1460,7 @@ var f14;
             return BaseButton;
         }());
         UI.BaseButton = BaseButton;
-        var ActionButton = (function (_super) {
+        var ActionButton = /** @class */ (function (_super) {
             __extends(ActionButton, _super);
             function ActionButton() {
                 var _this = _super.call(this) || this;
@@ -1375,7 +1490,7 @@ var f14;
             return ActionButton;
         }(BaseButton));
         UI.ActionButton = ActionButton;
-        var LogoButton = (function () {
+        var LogoButton = /** @class */ (function () {
             function LogoButton() {
                 var _this = this;
                 this.$This = $('<div>').addClass('ui-logo-button');
@@ -1405,7 +1520,7 @@ var f14;
 (function (f14) {
     var UI;
     (function (UI) {
-        var TextBox = (function () {
+        var TextBox = /** @class */ (function () {
             function TextBox() {
                 this.$This = $('<input>').addClass('ui-textbox');
             }
@@ -1425,7 +1540,7 @@ var f14;
             //===============================================================//
             //=========================== Popup =============================//
             //===============================================================//
-            var Popup = (function () {
+            var Popup = /** @class */ (function () {
                 function Popup() {
                     this.FooterButtons = [];
                     this.$This = $('<div>').addClass('ui-popup');
@@ -1462,14 +1577,11 @@ var f14;
                             .text(msg)
                             .appendTo(_this.ErrorSection);
                     };
-                    if (payload.data && payload.data.errors) {
-                        for (var _i = 0, _a = payload.data.errors; _i < _a.length; _i++) {
+                    if (payload.hasErrors()) {
+                        for (var _i = 0, _a = payload.errors; _i < _a.length; _i++) {
                             var i = _a[_i];
                             addErrorItem(i);
                         }
-                    }
-                    else {
-                        addErrorItem(payload.error);
                     }
                     this.ErrorSection.show(200);
                 };
@@ -1489,7 +1601,7 @@ var f14;
                 return Popup;
             }());
             Popups.Popup = Popup;
-            var RenamePopup = (function (_super) {
+            var RenamePopup = /** @class */ (function (_super) {
                 __extends(RenamePopup, _super);
                 function RenamePopup(item) {
                     var _this = _super.call(this) || this;
@@ -1498,16 +1610,14 @@ var f14;
                     _this.CreateRenameTextbox(_this.item);
                     var applyBtn = _this.GenerateButton(f14.Utils.getString('.apply'), function (e) {
                         var textBox = _this.Body.find('.tb-rename');
-                        var requestData = new f14.Ajax.RenameRequestData(f14.Explorer.NavigationData.GetCurrentPath());
+                        var requestParam = new f14.Ajax.RenameParam(f14.Explorer.NavigationData.GetCurrentPath());
                         var oldName = textBox.attr('data-origin-name');
                         var newName = textBox.val();
                         if (oldName !== newName) {
-                            requestData.AddRenameItem(oldName, newName, textBox.data('io-type') == f14.Models.FileSystemItemType.File);
+                            requestParam.AddRenameItem(oldName, newName, textBox.data('io-type') == f14.Models.FileSystemItemType.File);
                         }
-                        if (requestData.HasData()) {
-                            f14.Core.Config.dataService.RenameObjects(requestData, function (payload) {
-                                _this.updateItemNames(requestData, payload);
-                            });
+                        if (requestParam.HasData()) {
+                            f14.Core.Config.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Rename].execute(requestParam, function (payload) { return _this.updateItemNames(payload); });
                         }
                         else {
                             UI.HidePopup();
@@ -1526,24 +1636,20 @@ var f14;
                     tb.$This.val(itemName);
                     this.Body.append(tb.$This);
                 };
-                RenamePopup.prototype.updateItemNames = function (requestData, payload) {
-                    if (payload) {
-                        if (payload.error) {
-                            this.PopulatePayloadErrors(payload);
-                        }
-                        else {
-                            for (var _i = 0, _a = requestData.renames; _i < _a.length; _i++) {
-                                var i = _a[_i];
-                                this.item.SetItemName(i.newName);
-                            }
-                            UI.HidePopup();
-                        }
+                RenamePopup.prototype.updateItemNames = function (payload) {
+                    if (payload.hasErrors()) {
+                        this.PopulatePayloadErrors(payload);
+                    }
+                    else {
+                        var result = payload;
+                        this.item.SetItemName(result.renamedObjects[0].name); // TODO: multiple renames
+                        UI.HidePopup();
                     }
                 };
                 return RenamePopup;
             }(Popup));
             Popups.RenamePopup = RenamePopup;
-            var DeletePopup = (function (_super) {
+            var DeletePopup = /** @class */ (function (_super) {
                 __extends(DeletePopup, _super);
                 function DeletePopup(folderPath, itemNames) {
                     var _this = _super.call(this) || this;
@@ -1553,20 +1659,21 @@ var f14;
                     _this.ItemNames = itemNames;
                     $('<p>').text(f14.Utils.getString('.popup.delete.desc')).appendTo(_this.Body);
                     var delBtn = _this.GenerateButton(f14.Utils.getString('.io.delete'), function (e) {
-                        var rData = new f14.Ajax.DeleteRequestData(_this.FolderPath, _this.ItemNames);
-                        f14.Core.Config.dataService.DeleteObjects(rData, function (payload) {
+                        var param = new f14.Ajax.DeleteParam(_this.FolderPath, _this.ItemNames.map(function (v, i, arr) { return v.name; }));
+                        f14.Core.Config.ajaxRequestMap[f14.Ajax.AjaxActionTypes.Delete].execute(param, function (payload) {
                             if (f14.Core.Config.DEBUG) {
-                                console.log(rData);
+                                console.log(param);
                             }
-                            if (payload.error) {
+                            if (payload.hasErrors()) {
                                 _this.PopulatePayloadErrors(payload);
                             }
-                            if (payload.data.affected > 0) {
+                            var result = payload;
+                            if (result.affected > 0) {
                                 f14.Explorer.ReNavigate();
                                 UI.ShowToast({
-                                    message: f14.Utils.getString('.toast.delete.count.format').Format(payload.data.affected)
+                                    message: f14.Utils.getString('.toast.delete.count.format').Format(result.affected.toString())
                                 });
-                                if (payload.success) {
+                                if (!result.hasErrors()) {
                                     UI.HidePopup();
                                 }
                             }
@@ -1579,7 +1686,7 @@ var f14;
                 return DeletePopup;
             }(Popup));
             Popups.DeletePopup = DeletePopup;
-            var UploadFilesPopup = (function (_super) {
+            var UploadFilesPopup = /** @class */ (function (_super) {
                 __extends(UploadFilesPopup, _super);
                 function UploadFilesPopup() {
                     var _this = _super.call(this) || this;
@@ -1650,24 +1757,25 @@ var f14;
                                 var progress = $(container.find('.progress-value')[0]);
                                 var file = container.data('file');
                                 container.addClass('loading');
-                                f14.Core.Config.dataService.UploadFile(file, function (payload) {
+                                var param = new f14.Ajax.UploadFileParam(f14.Explorer.NavigationData.GetCurrentPath(), file, function (e) {
+                                    if (e.lengthComputable) {
+                                        var prc = Math.ceil(e.loaded / e.total * 100);
+                                        progress.text(prc + '%');
+                                    }
+                                });
+                                f14.Core.Config.ajaxRequestMap[f14.Ajax.AjaxActionTypes.UploadFile].execute(param, function (payload) {
                                     container.removeClass('loading');
-                                    if (payload.success) {
-                                        container.addClass('success');
+                                    if (payload.hasErrors()) {
+                                        container.addClass('error');
                                     }
                                     else {
-                                        container.addClass('error');
+                                        container.addClass('success');
                                     }
                                     _this.tasksCount = Math.max(0, _this.tasksCount - 1);
                                     if (_this.tasksCount === 0) {
                                         $(_this.Footer.find('.btn-file')).removeClass('disabled');
                                         btn.$This.removeClass('disabled');
                                         f14.Explorer.ReNavigate();
-                                    }
-                                }, function (e) {
-                                    if (e.lengthComputable) {
-                                        var prc = Math.ceil(e.loaded / e.total * 100);
-                                        progress.text(prc + '%');
                                     }
                                 });
                             });
@@ -1690,7 +1798,7 @@ var f14;
     (function (UI) {
         var Toasts;
         (function (Toasts) {
-            var ToastData = (function () {
+            var ToastData = /** @class */ (function () {
                 function ToastData() {
                 }
                 return ToastData;
@@ -1708,11 +1816,18 @@ var f14;
         Explorer.NavigationData = new f14.Navigation.NavigationStack();
         function Navigate() {
             var path = Explorer.NavigationData.GetCurrentPath();
-            if (f14.Core.Config.DEBUG) {
+            var config = f14.Core.Config;
+            if (config.DEBUG) {
                 console.log('Navigate => ' + path);
             }
-            f14.Core.Config.dataService.LoadFileSystemInfo(new f14.Ajax.FileSystemRequestData(path), function (payload) {
-                f14.UI.RenderFileStruct(payload.data.folders, payload.data.files);
+            config.ajaxRequestMap[f14.Ajax.AjaxActionTypes.FolderStruct].execute(new f14.Ajax.FolderStructParam(path), function (payload) {
+                if (payload.hasErrors()) {
+                    f14.UI.DisplayPayloadError(payload);
+                }
+                else {
+                    var result = payload;
+                    f14.UI.RenderFileStruct(result.folders, result.files);
+                }
             });
         }
         function NavigateTo(folderPath) {
@@ -1755,10 +1870,10 @@ var f14;
 })(f14 || (f14 = {}));
 
 "use strict";
-var FManager = (function () {
+var FManager = /** @class */ (function () {
     function FManager(settings) {
         f14.Localization.Init(); // Initialize localization
-        f14.Core.Configure(settings); // Apply config        
+        f14.Core.configure(settings); // Apply config        
         f14.UI.Render(); // Render ui        
         f14.Explorer.NavigateTo(f14.Core.Config.rootFolder); // Navigate to root folder
     }
@@ -1768,15 +1883,12 @@ var FManager = (function () {
 "use strict";
 var f14;
 (function (f14) {
-    var Tests;
-    (function (Tests) {
-        var FManagerTest = (function () {
-            function FManagerTest(settings) {
-                this.GenerateTestData();
-                new FManager(settings);
-            }
-            FManagerTest.prototype.GenerateTestData = function () {
-                var navMap = new f14.Memory.InMemoryNavigationMap();
+    var Mock;
+    (function (Mock) {
+        var MockNavigationMap = /** @class */ (function (_super) {
+            __extends(MockNavigationMap, _super);
+            function MockNavigationMap() {
+                var _this = _super.call(this) || this;
                 var root = new f14.Models.DirectoryInfo('C:');
                 root.CreateFile('boot.sys');
                 root.CreateFile('autorun.exe');
@@ -1793,12 +1905,224 @@ var f14;
                     var name_2 = "sound-" + (i + 1) + ".mp3";
                     snds.CreateFile(name_2);
                 }
-                navMap.CreateMap(root, false);
-                console.log(navMap.ToString());
-                f14.Core.Config.dataService = new f14.Data.InMemoryDataService(navMap);
-            };
-            return FManagerTest;
+                _this.MapFolder(root);
+                console.log(_this.ToString());
+                return _this;
+            }
+            return MockNavigationMap;
+        }(f14.Memory.InMemoryNavigationMap));
+        Mock.MockNavigationMap = MockNavigationMap;
+        var MockOperationRequest = /** @class */ (function () {
+            function MockOperationRequest(config) {
+                this.config = config;
+                this.map = config.inMemoryData;
+            }
+            return MockOperationRequest;
         }());
-        Tests.FManagerTest = FManagerTest;
-    })(Tests = f14.Tests || (f14.Tests = {}));
+        Mock.MockOperationRequest = MockOperationRequest;
+        var MockCopyRequest = /** @class */ (function (_super) {
+            __extends(MockCopyRequest, _super);
+            function MockCopyRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockCopyRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.Copy];
+            };
+            MockCopyRequest.prototype.execute = function (param, callback) {
+                var srcDir = this.map.GetFolderItemForPath(param.sourceDirectory);
+                var dstDir = this.map.GetFolderItemForPath(param.destinationDirectory);
+                var copyFile = function (file, dir) {
+                    var copy = new f14.Models.FileInfo(file.name, dir);
+                    Object.assign(copy, file);
+                    return copy;
+                };
+                var copyFolder = function (dir, parent) {
+                    var copy = new f14.Models.DirectoryInfo(dir.name, parent);
+                    for (var _i = 0, _a = dir.Files; _i < _a.length; _i++) {
+                        var f = _a[_i];
+                        copy.AddObject(copyFile(f, copy));
+                    }
+                    for (var _b = 0, _c = dir.Folders; _b < _c.length; _b++) {
+                        var f = _c[_b];
+                        copy.AddObject(copyFolder(f, copy));
+                    }
+                    return copy;
+                };
+                for (var _i = 0, _a = param.targets; _i < _a.length; _i++) {
+                    var n = _a[_i];
+                    var o = srcDir.GetObject(n.name);
+                    if (o) {
+                        if (n.isFile) {
+                            var file = copyFile(o, dstDir);
+                            dstDir.AddObject(file);
+                            if (this.config.DEBUG) {
+                                console.log(file);
+                            }
+                        }
+                        else {
+                            var folder = copyFolder(o, dstDir);
+                            this.map.MapFolder(folder);
+                            dstDir.AddObject(folder);
+                            if (this.config.DEBUG) {
+                                console.log(folder);
+                                console.log(this.map.ToString());
+                            }
+                        }
+                    }
+                }
+                var result = new f14.Ajax.CopyResult();
+                callback(result);
+            };
+            return MockCopyRequest;
+        }(MockOperationRequest));
+        Mock.MockCopyRequest = MockCopyRequest;
+        var MockMoveRequest = /** @class */ (function (_super) {
+            __extends(MockMoveRequest, _super);
+            function MockMoveRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockMoveRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.Move];
+            };
+            MockMoveRequest.prototype.execute = function (param, callback) {
+                var srcDir = this.map.GetFolderItemForPath(param.sourceDirectory);
+                var dstDir = this.map.GetFolderItemForPath(param.destinationDirectory);
+                var itemsToMove = [];
+                for (var _i = 0, _a = param.targets; _i < _a.length; _i++) {
+                    var n = _a[_i];
+                    var o = srcDir.DeleteObject(n.name);
+                    if (o) {
+                        itemsToMove.push(o);
+                    }
+                }
+                dstDir.AddObject(itemsToMove);
+                var result = new f14.Ajax.MoveResult();
+                callback(result);
+            };
+            return MockMoveRequest;
+        }(MockOperationRequest));
+        Mock.MockMoveRequest = MockMoveRequest;
+        var MockCreateFolderRequest = /** @class */ (function (_super) {
+            __extends(MockCreateFolderRequest, _super);
+            function MockCreateFolderRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockCreateFolderRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.CreateFolder];
+            };
+            MockCreateFolderRequest.prototype.execute = function (param, callback) {
+                var dir = this.map.GetFolderItemForPath(param.currentFolderPath);
+                dir.CreateFolder(param.name);
+                var result = new f14.Ajax.CreateFolderResult();
+                callback(result);
+            };
+            return MockCreateFolderRequest;
+        }(MockOperationRequest));
+        Mock.MockCreateFolderRequest = MockCreateFolderRequest;
+        var MockDeleteRequest = /** @class */ (function (_super) {
+            __extends(MockDeleteRequest, _super);
+            function MockDeleteRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockDeleteRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.Delete];
+            };
+            MockDeleteRequest.prototype.execute = function (param, callback) {
+                var dir = this.map.GetFolderItemForPath(param.currentFolderPath);
+                for (var _i = 0, _a = param.targets; _i < _a.length; _i++) {
+                    var n = _a[_i];
+                    dir.DeleteObject(n);
+                }
+                var result = new f14.Ajax.DeleteResult();
+                result.affected = param.targets.length;
+                callback(result);
+            };
+            return MockDeleteRequest;
+        }(MockOperationRequest));
+        Mock.MockDeleteRequest = MockDeleteRequest;
+        var MockFolderStructRequest = /** @class */ (function (_super) {
+            __extends(MockFolderStructRequest, _super);
+            function MockFolderStructRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockFolderStructRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.FolderStruct];
+            };
+            MockFolderStructRequest.prototype.execute = function (param, callback) {
+                var folder = this.map.GetFolderItemForPath(param.currentFolderPath);
+                if (folder === undefined) {
+                    throw "No folder info for given path: " + param.currentFolderPath;
+                }
+                var result = new f14.Ajax.FolderStructResult();
+                result.files = folder.Files;
+                result.folders = folder.Folders;
+                callback(result);
+            };
+            return MockFolderStructRequest;
+        }(MockOperationRequest));
+        Mock.MockFolderStructRequest = MockFolderStructRequest;
+        var MockRenameRequest = /** @class */ (function (_super) {
+            __extends(MockRenameRequest, _super);
+            function MockRenameRequest(config) {
+                return _super.call(this, config) || this;
+            }
+            MockRenameRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.Rename];
+            };
+            MockRenameRequest.prototype.execute = function (param, callback) {
+                var folder = this.map.GetFolderItemForPath(param.currentFolderPath);
+                if (folder === undefined) {
+                    throw "No folder info for given path: " + param.currentFolderPath;
+                }
+                var result = new f14.Ajax.RenameResult();
+                for (var _i = 0, _a = param.targets; _i < _a.length; _i++) {
+                    var t = _a[_i];
+                    if (folder.FileExists(t.name)) {
+                        result.errors.push(f14.Utils.getString('.popup.rename.error.exist').Format(t.name));
+                    }
+                    else {
+                        folder.GetObject(t.oldName).name = t.name;
+                        result.renamedObjects.push(t);
+                    }
+                }
+                callback(result);
+            };
+            return MockRenameRequest;
+        }(MockOperationRequest));
+        Mock.MockRenameRequest = MockRenameRequest;
+        var MockUploadFileRequest = /** @class */ (function (_super) {
+            __extends(MockUploadFileRequest, _super);
+            function MockUploadFileRequest() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            MockUploadFileRequest.prototype.getUrl = function () {
+                return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.UploadFile];
+            };
+            MockUploadFileRequest.prototype.execute = function (param, callback) {
+                var _this = this;
+                var interval = f14.Utils.NextInt(50, 150);
+                var total = 100;
+                var current = 0;
+                var handlerId = setInterval(function () {
+                    current += 1;
+                    if (param.progressChanged) {
+                        param.progressChanged(new ProgressEvent('counter', {
+                            lengthComputable: true,
+                            total: total,
+                            loaded: current
+                        }));
+                    }
+                }, interval);
+                setTimeout(function () {
+                    clearInterval(handlerId);
+                    var dir = _this.map.GetFolderItemForPath(param.currentFolderPath);
+                    dir.CreateFile(param.file.name);
+                    var result = new f14.Ajax.UploadFileResult();
+                    callback(result);
+                }, interval * total);
+            };
+            return MockUploadFileRequest;
+        }(MockOperationRequest));
+        Mock.MockUploadFileRequest = MockUploadFileRequest;
+    })(Mock = f14.Mock || (f14.Mock = {}));
 })(f14 || (f14 = {}));
