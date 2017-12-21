@@ -76,17 +76,17 @@ namespace f14.UI {
 
             this.$This.css({
                 display: '',
-                top: "-300px",
+                bottom: "-300px",
                 opacity: "0"
             }).animate({
-                top: "0px",
+                bottom: "0px",
                 opacity: "1"
             }, 400, () => callback(this));
         }
 
         public Hide(): void {
             this.$This.animate({
-                top: "-300px",
+                bottom: "-300px",
                 opacity: "0"
             }, 150, () => {
                 this.isShown = false;
