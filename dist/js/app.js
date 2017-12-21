@@ -209,6 +209,10 @@ var f14;
                     }
                 }
             };
+            InMemoryNavigationMap.prototype.replace = function (oldPath, dir) {
+                delete this.map[oldPath];
+                this.MapFolder(dir);
+            };
             InMemoryNavigationMap.prototype.ToString = function () {
                 var output = 'NavigationMap:';
                 for (var i in this.map) {
@@ -283,7 +287,7 @@ var f14;
         var AjaxActionTypes = /** @class */ (function () {
             function AjaxActionTypes() {
             }
-            AjaxActionTypes.FolderStruct = 'struct';
+            AjaxActionTypes.FolderStruct = 'folder_struct';
             AjaxActionTypes.Rename = 'rename';
             AjaxActionTypes.Delete = 'delete';
             AjaxActionTypes.Move = 'move';
@@ -706,7 +710,20 @@ var f14;
                     f14.UI.ShowPopup(popup);
                 }
             };
-            ActionButtonEvents.CreateObject = function (e) {
+            ActionButtonEvents.CreateFolder = function (e) {
+                var param = new f14.Ajax.CreateFolderParam(f14.Explorer.NavigationData.GetCurrentPath(), "new folder");
+                f14.Core.Config.ajaxRequestMap[f14.Ajax.AjaxActionTypes.CreateFolder].execute(param, function (payload) {
+                    var r = payload;
+                    if (r.hasErrors()) {
+                        f14.UI.DisplayPayloadError(r);
+                    }
+                    else {
+                        f14.UI.ShowToast({
+                            message: f14.Utils.getString(".toast.msg.dir.created")
+                        });
+                    }
+                    f14.Explorer.ReNavigate();
+                });
             };
             ActionButtonEvents.DeleteObjects = function (e) {
                 var items = f14.UI.GetCheckedItems();
@@ -869,53 +886,55 @@ var f14;
     (function (Localization) {
         function Init() {
             var l10nProvider = f14.Core.Config.L10NProvider || f14.L10n.Config.L10nProvider;
-            l10nProvider.AddLocale('ru', {
-                'f14fm.io.accept': 'Принять',
-                'f14fm.io.select-all': 'Выбрать все',
-                'f14fm.io.clear-selection': 'Снять выделение',
-                'f14fm.io.inverse-selection': 'Обратить выделение',
-                'f14fm.io.upload': 'Загрузить файлы',
-                'f14fm.io.select.files': 'Выбрать файлы',
-                'f14fm.io.delete': 'Удалить',
-                'f14fm.io.create': 'Создать',
-                'f14fm.io.rename': 'Переименовать',
-                'f14fm.io.move': 'Переместить',
-                'f14fm.io.copy': 'Копировать',
-                'f14fm.io.paste': 'Вставить',
-                'f14fm.apply': 'Применить',
-                'f14fm.close': 'Закрыть',
-                'f14fm.cancel': 'Отмена',
-                'f14fm.popup.delete.title': 'Удалить файлы и папки...',
-                'f14fm.popup.delete.desc': 'Вы уверены что хотите удалить эти файлы\\папки?',
-                'f14fm.popup.upload.title': 'Загрузка файлов',
-                'f14fm.popup.rename.error.exist': "\u0424\u0430\u0439\u043B \u0441 \u0442\u0430\u043A\u0438\u043C \u0438\u043C\u0435\u043D\u0435\u043C \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442! \u0418\u043C\u044F \u0444\u0430\u0439\u043B\u0430: {0}",
-                'f14fm.toast.msg.selection.empty': 'Ни один файл не выбран.',
-                'f14fm.toast.msg.same.folder': 'Папка назначения совпадает с исходной папкой.',
-                'f14fm.toast.delete.count.format': 'Удалено {0} объектов.',
+            l10nProvider.AddLocale("ru", {
+                "f14fm.io.accept": "Принять",
+                "f14fm.io.select-all": "Выбрать все",
+                "f14fm.io.clear-selection": "Снять выделение",
+                "f14fm.io.inverse-selection": "Обратить выделение",
+                "f14fm.io.upload": "Загрузить файлы",
+                "f14fm.io.select.files": "Выбрать файлы",
+                "f14fm.io.delete": "Удалить",
+                "f14fm.io.create-folder": "Создать папку",
+                "f14fm.io.rename": "Переименовать",
+                "f14fm.io.move": "Переместить",
+                "f14fm.io.copy": "Копировать",
+                "f14fm.io.paste": "Вставить",
+                "f14fm.apply": "Применить",
+                "f14fm.close": "Закрыть",
+                "f14fm.cancel": "Отмена",
+                "f14fm.popup.delete.title": "Удалить файлы и папки...",
+                "f14fm.popup.delete.desc": "Вы уверены что хотите удалить эти файлы\\папки?",
+                "f14fm.popup.upload.title": "Загрузка файлов",
+                "f14fm.popup.rename.error.exist": "\u0424\u0430\u0439\u043B \u0441 \u0442\u0430\u043A\u0438\u043C \u0438\u043C\u0435\u043D\u0435\u043C \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442! \u0418\u043C\u044F \u0444\u0430\u0439\u043B\u0430: {0}",
+                "f14fm.toast.msg.selection.empty": "Ни один файл не выбран.",
+                "f14fm.toast.msg.same.folder": "Папка назначения совпадает с исходной папкой.",
+                "f14fm.toast.msg.dir.created": "Новая папка создана.",
+                "f14fm.toast.delete.count.format": "Удалено {0} объектов.",
             });
-            l10nProvider.AddLocale('en', {
-                'f14fm.io.accept': 'Done',
-                'f14fm.io.select-all': 'Select All',
-                'f14fm.io.clear-selection': 'Clear Selection',
-                'f14fm.io.inverse-selection': 'Inverse Selection',
-                'f14fm.io.upload': 'Upload Files',
-                'f14fm.io.select.files': 'Select files',
-                'f14fm.io.delete': 'Delete',
-                'f14fm.io.create': 'Create',
-                'f14fm.io.rename': 'Rename',
-                'f14fm.io.move': 'Move',
-                'f14fm.io.copy': 'Copy',
-                'f14fm.io.paste': 'Paste',
-                'f14fm.io.apply': 'Apply',
-                'f14fm.close': 'Close',
-                'f14fm.cancel': 'Cancel',
-                'f14fm.popup.delete.title': 'Delete files and folders...',
-                'f14fm.popup.delete.desc': 'Are you sure you want to delete this files\\folders?',
-                'f14fm.popup.upload.title': 'File uploader',
-                'f14fm.popup.rename.error.exist': "A File with this name already exists! File name: {0}",
-                'f14fm.toast.msg.selection.empty': 'No selected files.',
-                'f14fm.toast.msg.same.folder': 'Destination folder coincides with the source folder.',
-                'f14fm.toast.delete.count.format': '{0} items deleted.',
+            l10nProvider.AddLocale("en", {
+                "f14fm.io.accept": "Done",
+                "f14fm.io.select-all": "Select All",
+                "f14fm.io.clear-selection": "Clear Selection",
+                "f14fm.io.inverse-selection": "Inverse Selection",
+                "f14fm.io.upload": "Upload Files",
+                "f14fm.io.select.files": "Select files",
+                "f14fm.io.delete": "Delete",
+                "f14fm.io.create-folder": "Create folder",
+                "f14fm.io.rename": "Rename",
+                "f14fm.io.move": "Move",
+                "f14fm.io.copy": "Copy",
+                "f14fm.io.paste": "Paste",
+                "f14fm.io.apply": "Apply",
+                "f14fm.close": "Close",
+                "f14fm.cancel": "Cancel",
+                "f14fm.popup.delete.title": "Delete files and folders...",
+                "f14fm.popup.delete.desc": "Are you sure you want to delete this files\\folders?",
+                "f14fm.popup.upload.title": "File uploader",
+                "f14fm.popup.rename.error.exist": "A File with this name already exists! File name: {0}",
+                "f14fm.toast.msg.selection.empty": "No selected files.",
+                "f14fm.toast.msg.same.folder": "Destination folder coincides with the source folder.",
+                "f14fm.toast.msg.dir.created": "A new directory has been created.",
+                "f14fm.toast.delete.count.format": "{0} items deleted.",
             });
         }
         Localization.Init = Init;
@@ -1041,10 +1060,12 @@ var f14;
             }
             _uIContainer = new UI.UIContainer();
             Body.prepend(_uIContainer.$This);
-            // Add buttons
+            var config = f14.Core.Config;
+            var actionTypes = f14.Ajax.AjaxActionTypes;
+            var actionEvents = f14.Events.ActionButtonEvents;
             var actionPanel = _uIContainer.ContentPanel.FileActionPanel.ActionPanel;
             // Show the accept button if callback is set.
-            if (f14.Core.Config.selectCallback) {
+            if (config.selectCallback) {
                 actionPanel.AddButton(UI.ActionButton.Create({
                     classes: 'btn-primary',
                     icon: 'mdl2-accept',
@@ -1052,60 +1073,50 @@ var f14;
                     action: f14.Events.ActionButtonEvents.AcceptSelection
                 }));
             }
-            // Show the upload button if uploadUrl is set.
-            if (f14.Core.Config.endPointUrlMap[f14.Ajax.AjaxActionTypes.UploadFile]) {
-                actionPanel.AddButton(UI.ActionButton.Create({
-                    classes: 'btn-primary',
-                    icon: 'mdl2-upload',
-                    text: f14.Utils.getString('.io.upload'),
-                    action: f14.Events.ActionButtonEvents.UploadObjects
-                }));
-            }
-            // TODO: This action make sense if we can edit file after creation.
-            // actionPanel.AddButton(ActionButton.Create({
-            //     icon: 'mdl2-new-folder',
-            //     text: Utils.getString('.io.create'),
-            //     action: Events.ActionButtonEvents.CreateObject
-            // }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-delete',
-                text: f14.Utils.getString('.io.delete'),
-                action: f14.Events.ActionButtonEvents.DeleteObjects
-            }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-rename',
-                text: f14.Utils.getString('.io.rename'),
-                action: f14.Events.ActionButtonEvents.RenameObjects
-            }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-copy',
-                text: f14.Utils.getString('.io.copy'),
-                shortcut: 'ctrl+c',
-                action: f14.Events.ActionButtonEvents.CopyObjects
-            }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-move',
-                text: f14.Utils.getString('.io.move'),
-                shortcut: 'ctrl+x',
-                action: f14.Events.ActionButtonEvents.MoveObjects
-            }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-paste',
-                text: f14.Utils.getString('.io.paste'),
-                shortcut: 'ctrl+v',
-                action: f14.Events.ActionButtonEvents.PasteObjects
-            }));
-            actionPanel.AddButton(UI.ActionButton.Create({
-                icon: 'mdl2-select-all',
-                text: f14.Utils.getString('.io.select-all'),
-                action: f14.Events.ActionButtonEvents.SelectObjects
-            }));
+            addActionButton(actionPanel, actionTypes.UploadFile, "btn-primary", "mdl2-upload", null, f14.Utils.getString(".io.upload"), actionEvents.UploadObjects);
+            addActionButton(actionPanel, actionTypes.CreateFolder, null, "mdl2-new-folder", null, f14.Utils.getString(".io.create-folder"), actionEvents.CreateFolder);
+            addActionButton(actionPanel, actionTypes.Delete, null, "mdl2-delete", null, f14.Utils.getString(".io.delete"), actionEvents.DeleteObjects);
+            addActionButton(actionPanel, actionTypes.Rename, null, "mdl2-rename", null, f14.Utils.getString(".io.rename"), actionEvents.RenameObjects);
+            addActionButton(actionPanel, actionTypes.Copy, null, "mdl2-copy", "ctrl+c", f14.Utils.getString(".io.copy"), actionEvents.CopyObjects);
+            addActionButton(actionPanel, actionTypes.Move, null, "mdl2-move", "ctrl+x", f14.Utils.getString(".io.move"), actionEvents.MoveObjects);
+            addActionButton(actionPanel, [actionTypes.Move, actionTypes.Copy], null, "mdl2-paste", "ctrl+v", f14.Utils.getString(".io.paste"), actionEvents.PasteObjects);
+            addActionButton(actionPanel, null, null, "mdl2-select-all", null, f14.Utils.getString(".io.select-all"), actionEvents.SelectObjects);
             // Add button defined in configuration.
-            if (f14.Core.Config.actionButtons && f14.Core.Config.actionButtons.length > 0) {
+            if (config.actionButtons && config.actionButtons.length > 0) {
                 for (var _i = 0, _a = f14.Core.Config.actionButtons; _i < _a.length; _i++) {
                     var o = _a[_i];
                     actionPanel.AddButton(UI.ActionButton.Create(o));
                 }
+            }
+        }
+        function addActionButton(panel, actionTypes, classes, icon, shortcut, text, action) {
+            var hasAny = false;
+            if (actionTypes != null) {
+                if (Array.isArray(actionTypes)) {
+                    for (var _i = 0, actionTypes_1 = actionTypes; _i < actionTypes_1.length; _i++) {
+                        var t = actionTypes_1[_i];
+                        if (f14.Core.Config.endPointUrlMap[t]) {
+                            hasAny = true;
+                            break;
+                        }
+                    }
+                }
+                else {
+                    hasAny = f14.Core.Config.endPointUrlMap[actionTypes] != null;
+                }
+            }
+            else {
+                hasAny = true;
+            }
+            if (hasAny) {
+                var buttonInfo = {
+                    classes: classes,
+                    icon: icon,
+                    shortcut: shortcut,
+                    text: text,
+                    action: action
+                };
+                panel.AddButton(UI.ActionButton.Create(buttonInfo));
             }
         }
     })(UI = f14.UI || (f14.UI = {}));
@@ -1170,17 +1181,17 @@ var f14;
                 };
                 this.$This.css({
                     display: '',
-                    top: "-300px",
+                    bottom: "-300px",
                     opacity: "0"
                 }).animate({
-                    top: "0px",
+                    bottom: "0px",
                     opacity: "1"
                 }, 400, function () { return callback(_this); });
             };
             ToasContainer.prototype.Hide = function () {
                 var _this = this;
                 this.$This.animate({
-                    top: "-300px",
+                    bottom: "-300px",
                     opacity: "0"
                 }, 150, function () {
                     _this.isShown = false;
@@ -2011,8 +2022,9 @@ var f14;
                 return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.CreateFolder];
             };
             MockCreateFolderRequest.prototype.execute = function (param, callback) {
-                var dir = this.map.GetFolderItemForPath(param.currentFolderPath);
-                dir.CreateFolder(param.name);
+                var currentDir = this.map.GetFolderItemForPath(param.currentFolderPath);
+                var newDir = currentDir.CreateFolder(param.name);
+                this.map.MapFolder(newDir);
                 var result = new f14.Ajax.CreateFolderResult();
                 callback(result);
             };
@@ -2070,19 +2082,36 @@ var f14;
                 return this.config.endPointUrlMap[f14.Ajax.AjaxActionTypes.Rename];
             };
             MockRenameRequest.prototype.execute = function (param, callback) {
-                var folder = this.map.GetFolderItemForPath(param.currentFolderPath);
-                if (folder === undefined) {
+                var workFolder = this.map.GetFolderItemForPath(param.currentFolderPath);
+                if (workFolder === undefined) {
                     throw "No folder info for given path: " + param.currentFolderPath;
                 }
                 var result = new f14.Ajax.RenameResult();
                 for (var _i = 0, _a = param.targets; _i < _a.length; _i++) {
                     var t = _a[_i];
-                    if (folder.FileExists(t.name)) {
-                        result.errors.push(f14.Utils.getString('.popup.rename.error.exist').Format(t.name));
+                    if (t.isFile) {
+                        if (workFolder.FileExists(t.name)) {
+                            result.errors.push(f14.Utils.getString('.popup.rename.error.exist').Format(t.name));
+                        }
+                        else {
+                            workFolder.GetFile(t.oldName).name = t.name;
+                            result.renamedObjects.push(t);
+                        }
                     }
                     else {
-                        folder.GetObject(t.oldName).name = t.name;
-                        result.renamedObjects.push(t);
+                        if (workFolder.FolderExists(t.name)) {
+                            result.errors.push(f14.Utils.getString('.popup.rename.error.exist').Format(t.name));
+                        }
+                        else {
+                            var target = workFolder.GetFolder(t.oldName);
+                            var oldPath = target.GetFullPath();
+                            target.name = t.name;
+                            if (f14.Core.Config.DEBUG) {
+                                console.log("Old path: " + oldPath + " New path: " + target.GetFullPath());
+                            }
+                            this.map.replace(oldPath, target);
+                            result.renamedObjects.push(t);
+                        }
                     }
                 }
                 callback(result);

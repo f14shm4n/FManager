@@ -17,6 +17,11 @@ namespace f14.Memory {
             }
         }
 
+        public replace(oldPath: string, dir: Models.DirectoryInfo): void {
+            delete this.map[oldPath];
+            this.MapFolder(dir);
+        }
+
         public ToString(): string {
             let output = 'NavigationMap:';
             for (var i in this.map) {

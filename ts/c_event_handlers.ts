@@ -43,8 +43,19 @@ namespace f14.Events {
             }
         }
 
-        public static CreateObject(e: JQueryEventObject): void {
-
+        public static CreateFolder(e: JQueryEventObject): void {
+            let param = new Ajax.CreateFolderParam(Explorer.NavigationData.GetCurrentPath(), "new folder");
+            Core.Config.ajaxRequestMap[Ajax.AjaxActionTypes.CreateFolder].execute(param, payload => {
+                let r = payload as Ajax.CreateFolderResult;
+                if (r.hasErrors()) {
+                    UI.DisplayPayloadError(r);
+                } else {
+                    UI.ShowToast({
+                        message: Utils.getString(".toast.msg.dir.created")
+                    });
+                }
+                Explorer.ReNavigate();
+            });
         }
 
         public static DeleteObjects(e: JQueryEventObject): void {

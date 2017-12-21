@@ -145,8 +145,10 @@ namespace f14.Mock {
         }
 
         public execute(param: Ajax.CreateFolderParam, callback: Ajax.OperationRequestCallback): void {
-            let dir = this.map.GetFolderItemForPath(param.currentFolderPath);
-            dir.CreateFolder(param.name);
+            let currentDir = this.map.GetFolderItemForPath(param.currentFolderPath);
+            let newDir = currentDir.CreateFolder(param.name);
+
+            this.map.MapFolder(newDir);
 
             let result = new Ajax.CreateFolderResult();
             callback(result);
@@ -211,19 +213,38 @@ namespace f14.Mock {
         }
 
         public execute(param: Ajax.RenameParam, callback: Ajax.OperationRequestCallback): void {
-            let folder = this.map.GetFolderItemForPath(param.currentFolderPath);
-            if (folder === undefined) {
+            let workFolder = this.map.GetFolderItemForPath(param.currentFolderPath);
+            if (workFolder === undefined) {
                 throw `No folder info for given path: ${param.currentFolderPath}`;
             }
 
             let result = new Ajax.RenameResult();
 
             for (let t of param.targets) {
-                if (folder.FileExists(t.name)) {
-                    result.errors.push(Utils.getString('.popup.rename.error.exist').Format(t.name));
+                if (t.isFile) {
+                    if (workFolder.FileExists(t.name)) {
+                        result.errors.push(Utils.getString('.popup.rename.error.exist').Format(t.name));
+                    } else {
+                        workFolder.GetFile(t.oldName).name = t.name;
+                        result.renamedObjects.push(t);
+                    }
                 } else {
-                    folder.GetObject(t.oldName).name = t.name;
-                    result.renamedObjects.push(t);
+                    if (workFolder.FolderExists(t.name)) {
+                        result.errors.push(Utils.getString('.popup.rename.error.exist').Format(t.name));
+                    } else {
+                        let target = workFolder.GetFolder(t.oldName);
+                        let oldPath = target.GetFullPath();
+
+                        target.name = t.name;
+
+                        if (Core.Config.DEBUG){
+                            console.log(`Old path: ${oldPath} New path: ${target.GetFullPath()}`);
+                        }
+
+                        this.map.replace(oldPath, target);
+
+                        result.renamedObjects.push(t);
+                    }
                 }
             }
 

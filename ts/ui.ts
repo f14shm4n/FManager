@@ -100,10 +100,13 @@ namespace f14.UI {
         _uIContainer = new UIContainer();
         Body.prepend(_uIContainer.$This);
 
-        // Add buttons
+        let config = Core.Config;
+        let actionTypes = Ajax.AjaxActionTypes;
+        let actionEvents = Events.ActionButtonEvents;
         let actionPanel = _uIContainer.ContentPanel.FileActionPanel.ActionPanel;
+
         // Show the accept button if callback is set.
-        if (Core.Config.selectCallback) {
+        if (config.selectCallback) {
             actionPanel.AddButton(ActionButton.Create({
                 classes: 'btn-primary',
                 icon: 'mdl2-accept',
@@ -111,60 +114,53 @@ namespace f14.UI {
                 action: Events.ActionButtonEvents.AcceptSelection
             }));
         }
-        // Show the upload button if uploadUrl is set.
-        if (Core.Config.endPointUrlMap[Ajax.AjaxActionTypes.UploadFile]) {
-            actionPanel.AddButton(ActionButton.Create({
-                classes: 'btn-primary',
-                icon: 'mdl2-upload',
-                text: Utils.getString('.io.upload'),
-                action: Events.ActionButtonEvents.UploadObjects
-            }));
-        }
-        // TODO: This action make sense if we can edit file after creation.
-        // actionPanel.AddButton(ActionButton.Create({
-        //     icon: 'mdl2-new-folder',
-        //     text: Utils.getString('.io.create'),
-        //     action: Events.ActionButtonEvents.CreateObject
-        // }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-delete',
-            text: Utils.getString('.io.delete'),
-            action: Events.ActionButtonEvents.DeleteObjects
-        }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-rename',
-            text: Utils.getString('.io.rename'),
-            action: Events.ActionButtonEvents.RenameObjects
-        }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-copy',
-            text: Utils.getString('.io.copy'),
-            shortcut: 'ctrl+c',
-            action: Events.ActionButtonEvents.CopyObjects
-        }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-move',
-            text: Utils.getString('.io.move'),
-            shortcut: 'ctrl+x',
-            action: Events.ActionButtonEvents.MoveObjects
-        }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-paste',
-            text: Utils.getString('.io.paste'),
-            shortcut: 'ctrl+v',
-            action: Events.ActionButtonEvents.PasteObjects
-        }));
-        actionPanel.AddButton(ActionButton.Create({
-            icon: 'mdl2-select-all',
-            text: Utils.getString('.io.select-all'),
-            action: Events.ActionButtonEvents.SelectObjects
-        }));
+
+        addActionButton(actionPanel, actionTypes.UploadFile, "btn-primary", "mdl2-upload", null, Utils.getString(".io.upload"), actionEvents.UploadObjects);
+        addActionButton(actionPanel, actionTypes.CreateFolder, null, "mdl2-new-folder", null, Utils.getString(".io.create-folder"), actionEvents.CreateFolder);
+        addActionButton(actionPanel, actionTypes.Delete, null, "mdl2-delete", null, Utils.getString(".io.delete"), actionEvents.DeleteObjects);
+        addActionButton(actionPanel, actionTypes.Rename, null, "mdl2-rename", null, Utils.getString(".io.rename"), actionEvents.RenameObjects);
+        addActionButton(actionPanel, actionTypes.Copy, null, "mdl2-copy", "ctrl+c", Utils.getString(".io.copy"), actionEvents.CopyObjects);
+        addActionButton(actionPanel, actionTypes.Move, null, "mdl2-move", "ctrl+x", Utils.getString(".io.move"), actionEvents.MoveObjects);
+        addActionButton(actionPanel, [actionTypes.Move, actionTypes.Copy], null, "mdl2-paste", "ctrl+v", Utils.getString(".io.paste"), actionEvents.PasteObjects);
+        addActionButton(actionPanel, null, null, "mdl2-select-all", null, Utils.getString(".io.select-all"), actionEvents.SelectObjects);
 
         // Add button defined in configuration.
-        if (Core.Config.actionButtons && Core.Config.actionButtons.length > 0) {
+        if (config.actionButtons && config.actionButtons.length > 0) {
             for (let o of Core.Config.actionButtons) {
                 actionPanel.AddButton(ActionButton.Create(o));
             }
+        }
+    }
+
+    function addActionButton(panel: ActionPanel, actionTypes: string | string[], classes: string, icon: string,
+        shortcut: string, text: string, action: (e: JQueryEventObject) => void): void {
+
+        let hasAny: boolean = false;
+
+        if (actionTypes != null) {
+            if (Array.isArray(actionTypes)) {
+                for (let t of actionTypes) {
+                    if (Core.Config.endPointUrlMap[t]) {
+                        hasAny = true;
+                        break;
+                    }
+                }
+            } else {
+                hasAny = Core.Config.endPointUrlMap[actionTypes] != null;
+            }
+        } else {
+            hasAny = true;
+        }
+
+        if (hasAny) {
+            let buttonInfo: Models.ActionButtonInfo = {
+                classes: classes,
+                icon: icon,
+                shortcut: shortcut,
+                text: text,
+                action: action
+            };
+            panel.AddButton(ActionButton.Create(buttonInfo));
         }
     }
 }
