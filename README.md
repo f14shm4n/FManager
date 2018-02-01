@@ -4,6 +4,8 @@ It's file manager\selector for web.
 
 Project written on Typescript, with SASS for styles.
 
+For this file manager, there is a ready-made server solution for [AspNetCore](https://github.com/f14shm4n/f14.AspNetCore.FileManager).
+
 ## Requirements
 
 The following packages are required.
