@@ -114,6 +114,10 @@ All keys you can find in the `AjaxActionTypes` type;
     }
 ```
 
+### Ajax request and response data
+
+[See this.](https://github.com/f14shm4n/f14.AspNetCore.FileManager/blob/master/JsonFormat.md)
+
 ### Authors
 
 [f14shm4n](https://github.com/f14shm4n)
