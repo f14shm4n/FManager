@@ -8,14 +8,14 @@ Project written on Typescript, with SASS for styles.
 
 The following packages are required.
 
-| Package | Version |
-|---------|---|
-| [jquery](https://jquery.com/) | 1.9+ |
-| [f14-l10n](https://github.com/f14shm4n/f14.l10n-ts) | 1.0.0+ |
+| Package | Version | Description |
+|---------|---------|-------------|
+| [jquery](https://jquery.com/) | 1.9+ | Add the script to the page. |
+| [f14-l10n](https://github.com/f14shm4n/f14.l10n-ts) | 1.0.0+ | Add the script to the page. You do not need to configure anything. |
 
 ### Installing
 
-All, you need in in the `dist` folder.
+All you need in in the `dist` folder.
 
 * CSS
 * Fonts
@@ -33,8 +33,8 @@ Add all necessary packages:
 Add package scripts and styles:
 
 ```
-<link rel="stylesheet" href="~/lib/fmanager/dist/css/styles.min.css" asp-append-version="true" />
-<script src="~/lib/fmanager/dist/js/app.min.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/lib/fmanager/dist/css/styles.min.css" asp-append-version="true" />
+    <script src="~/lib/fmanager/dist/js/app.min.js" asp-append-version="true"></script>
 ```
 
 ### Usage
