@@ -10,10 +10,10 @@ namespace f14.Ajax {
         public static UploadFile: string = "upload_file";
     }
 
-    export type OperationRequestCallback = (payload: Ajax.BaseResult) => void;
+    export type OperationRequestCallback<R extends BaseResult> = (payload: R) => void;
 
-    export interface IOperationRequest<T extends f14.Ajax.BaseParam> {
-        execute(param: T, callback: OperationRequestCallback): void;
+    export interface IOperationRequest<T extends BaseParam, R extends BaseResult> {
+        execute(param: T, callback: OperationRequestCallback<R>): void;
     }
 
     export class BaseActionTarget {

@@ -28,7 +28,7 @@ namespace f14.Mock {
         }
     }
 
-    export abstract class MockOperationRequest<T extends Ajax.BaseParam> implements Ajax.IOperationRequest<T>{
+    export abstract class MockOperationRequest<T extends Ajax.BaseParam, R extends Ajax.BaseResult> implements Ajax.IOperationRequest<T, R>{
         protected config: f14.Core.Configuration;
         protected map: f14.Memory.InMemoryNavigationMap;
 
@@ -39,10 +39,10 @@ namespace f14.Mock {
 
         public abstract getUrl(): string;
 
-        public abstract execute(param: T, callback: Ajax.OperationRequestCallback): void;
+        public abstract execute(param: T, callback: Ajax.OperationRequestCallback<R>): void;
     }
 
-    export class MockCopyRequest extends MockOperationRequest<Ajax.CopyParam>{
+    export class MockCopyRequest extends MockOperationRequest<Ajax.CopyParam, Ajax.CopyResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -52,13 +52,13 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Copy];
         }
 
-        public execute(param: Ajax.CopyParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.CopyParam, callback: Ajax.OperationRequestCallback<Ajax.CopyResult>): void {
             let srcDir = this.map.GetFolderItemForPath(param.sourceDirectory);
             let dstDir = this.map.GetFolderItemForPath(param.destinationDirectory);
 
             let copyFile = (file: Models.FileInfo, dir: Models.DirectoryInfo): Models.FileInfo => {
                 let copy = new Models.FileInfo(file.name, dir);
-                Object.assign(copy, file);
+                $.extend(true, copy, file);
                 return copy;
             };
 
@@ -104,7 +104,7 @@ namespace f14.Mock {
         }
     }
 
-    export class MockMoveRequest extends MockOperationRequest<Ajax.MoveParam>{
+    export class MockMoveRequest extends MockOperationRequest<Ajax.MoveParam, Ajax.MoveResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -114,7 +114,7 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Move];
         }
 
-        public execute(param: Ajax.MoveParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.MoveParam, callback: Ajax.OperationRequestCallback<Ajax.MoveResult>): void {
             let srcDir = this.map.GetFolderItemForPath(param.sourceDirectory);
             let dstDir = this.map.GetFolderItemForPath(param.destinationDirectory);
 
@@ -134,7 +134,7 @@ namespace f14.Mock {
         }
     }
 
-    export class MockCreateFolderRequest extends MockOperationRequest<Ajax.CreateFolderParam>{
+    export class MockCreateFolderRequest extends MockOperationRequest<Ajax.CreateFolderParam, Ajax.CreateFolderResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -144,7 +144,7 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.CreateFolder];
         }
 
-        public execute(param: Ajax.CreateFolderParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.CreateFolderParam, callback: Ajax.OperationRequestCallback<Ajax.MoveResult>): void {
             let currentDir = this.map.GetFolderItemForPath(param.currentFolderPath);
             let newDir = currentDir.CreateFolder(param.name);
 
@@ -155,7 +155,7 @@ namespace f14.Mock {
         }
     }
 
-    export class MockDeleteRequest extends MockOperationRequest<Ajax.DeleteParam>{
+    export class MockDeleteRequest extends MockOperationRequest<Ajax.DeleteParam, Ajax.DeleteResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -165,7 +165,7 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Delete];
         }
 
-        public execute(param: Ajax.DeleteParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.DeleteParam, callback: Ajax.OperationRequestCallback<Ajax.DeleteResult>): void {
             let dir = this.map.GetFolderItemForPath(param.currentFolderPath);
             for (let n of param.targets) {
                 dir.DeleteObject(n);
@@ -178,7 +178,7 @@ namespace f14.Mock {
         }
     }
 
-    export class MockFolderStructRequest extends MockOperationRequest<Ajax.FolderStructParam>{
+    export class MockFolderStructRequest extends MockOperationRequest<Ajax.FolderStructParam, Ajax.FolderStructResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -188,7 +188,7 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.FolderStruct];
         }
 
-        public execute(param: Ajax.FolderStructParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.FolderStructParam, callback: Ajax.OperationRequestCallback<Ajax.FolderStructResult>): void {
             let folder = this.map.GetFolderItemForPath(param.currentFolderPath);
             if (folder === undefined) {
                 throw `No folder info for given path: ${param.currentFolderPath}`;
@@ -202,7 +202,7 @@ namespace f14.Mock {
         }
     }
 
-    export class MockRenameRequest extends MockOperationRequest<Ajax.RenameParam>{
+    export class MockRenameRequest extends MockOperationRequest<Ajax.RenameParam, Ajax.RenameResult>{
 
         constructor(config: f14.Core.Configuration) {
             super(config);
@@ -212,7 +212,7 @@ namespace f14.Mock {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Rename];
         }
 
-        public execute(param: Ajax.RenameParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.RenameParam, callback: Ajax.OperationRequestCallback<Ajax.RenameResult>): void {
             let workFolder = this.map.GetFolderItemForPath(param.currentFolderPath);
             if (workFolder === undefined) {
                 throw `No folder info for given path: ${param.currentFolderPath}`;
@@ -237,7 +237,7 @@ namespace f14.Mock {
 
                         target.name = t.name;
 
-                        if (Core.Config.DEBUG){
+                        if (Core.Config.DEBUG) {
                             console.log(`Old path: ${oldPath} New path: ${target.GetFullPath()}`);
                         }
 
@@ -252,13 +252,13 @@ namespace f14.Mock {
         }
     }
 
-    export class MockUploadFileRequest extends MockOperationRequest<Ajax.UploadFileParam>{
+    export class MockUploadFileRequest extends MockOperationRequest<Ajax.UploadFileParam, Ajax.UploadFileResult>{
 
         public getUrl(): string {
             return this.config.endPointUrlMap[Ajax.AjaxActionTypes.UploadFile];
         }
 
-        public execute(param: Ajax.UploadFileParam, callback: Ajax.OperationRequestCallback): void {
+        public execute(param: Ajax.UploadFileParam, callback: Ajax.OperationRequestCallback<Ajax.UploadFileResult>): void {
             let interval = Utils.NextInt(50, 150);
             let total: number = 100;
             let current = 0;

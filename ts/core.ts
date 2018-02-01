@@ -12,7 +12,7 @@ namespace f14.Core {
         MOCK: boolean = false;
 
         endPointUrlMap: IStringMap<string> = {};
-        ajaxRequestMap: IStringMap<Ajax.IOperationRequest<Ajax.BaseParam>> = {};
+        ajaxRequestMap: IStringMap<Ajax.IOperationRequest<Ajax.BaseParam, Ajax.BaseResult>> = {};
         inMemoryData: Memory.InMemoryNavigationMap;
 
         constructor() {
@@ -23,7 +23,7 @@ namespace f14.Core {
             this.ajaxRequestMap[Ajax.AjaxActionTypes.FolderStruct] = new Ajax.FolderStructRequest(this);
             this.ajaxRequestMap[Ajax.AjaxActionTypes.Rename] = new Ajax.RenameRequest(this);
             this.ajaxRequestMap[Ajax.AjaxActionTypes.UploadFile] = new Ajax.UploadFileRequest(this);
-        }        
+        }
     }
 
     export var L10NPrefix: string = "f14fm";

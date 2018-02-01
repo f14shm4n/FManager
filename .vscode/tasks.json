@@ -16,16 +16,6 @@
             "problemMatcher": []
         },
         {
-            "type": "npm",
-            "script": "install",
-            "problemMatcher": []
-        },
-        {
-            "type": "gulp",
-            "task": "compress",
-            "problemMatcher": []
-        },
-        {
             "type": "gulp",
             "task": "copy-assets",
             "problemMatcher": []

@@ -4,10 +4,7 @@ namespace f14.Ajax {
         errors: string[] = [];
 
         public hasErrors(): boolean {
-            if (this.errors && this.errors.length > 0) {
-                return true;
-            }
-            return false;
+            return this.errors && this.errors.length > 0;
         }
     }
 

@@ -442,10 +442,7 @@ var f14;
                 this.errors = [];
             }
             BaseResult.prototype.hasErrors = function () {
-                if (this.errors && this.errors.length > 0) {
-                    return true;
-                }
-                return false;
+                return this.errors && this.errors.length > 0;
             };
             return BaseResult;
         }());
@@ -537,6 +534,7 @@ var f14;
             };
             BaseOperationRequest.prototype.makeAjaxData = function (url, param, callback) {
                 var _this = this;
+                this.callback = callback;
                 var ajaxSettings = {
                     url: url,
                     type: 'POST',
@@ -544,16 +542,24 @@ var f14;
                     dataType: 'json',
                     data: JSON.stringify(param),
                     beforeSend: this.config.xhrBeforeSend,
-                    success: function (payload) {
-                        if (_this.config.DEBUG) {
-                            console.log(payload);
-                        }
-                        if (callback) {
-                            callback(payload);
-                        }
-                    }
+                    success: function (data) { return _this.ajaxSuccess(data); },
+                    error: function (xhr, status, error) { return _this.ajaxError(xhr, status, error); }
                 };
+                this.extendAjaxData(ajaxSettings, param);
                 return ajaxSettings;
+            };
+            BaseOperationRequest.prototype.extendAjaxData = function (ajaxSettings, param) {
+            };
+            BaseOperationRequest.prototype.ajaxSuccess = function (data) {
+                if (this.config.DEBUG) {
+                    console.log(data);
+                }
+                if (this.callback) {
+                    this.callback(this.makeResultFrom(data));
+                }
+            };
+            BaseOperationRequest.prototype.ajaxError = function (xhr, textStatus, errorThrown) {
+                console.log("Status: %s\nError: %s", textStatus);
             };
             return BaseOperationRequest;
         }());
@@ -566,6 +572,11 @@ var f14;
             CopyRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Copy];
             };
+            CopyRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.CopyResult();
+                $.extend(true, r, data);
+                return r;
+            };
             return CopyRequest;
         }(BaseOperationRequest));
         Ajax.CopyRequest = CopyRequest;
@@ -576,6 +587,11 @@ var f14;
             }
             MoveRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Move];
+            };
+            MoveRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.MoveResult();
+                $.extend(true, r, data);
+                return r;
             };
             return MoveRequest;
         }(BaseOperationRequest));
@@ -588,6 +604,11 @@ var f14;
             CreateFolderRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.CreateFolder];
             };
+            CreateFolderRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.CreateFolderResult();
+                $.extend(true, r, data);
+                return r;
+            };
             return CreateFolderRequest;
         }(BaseOperationRequest));
         Ajax.CreateFolderRequest = CreateFolderRequest;
@@ -598,6 +619,11 @@ var f14;
             }
             DeleteRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Delete];
+            };
+            DeleteRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.DeleteResult();
+                $.extend(true, r, data);
+                return r;
             };
             return DeleteRequest;
         }(BaseOperationRequest));
@@ -610,6 +636,11 @@ var f14;
             FolderStructRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.FolderStruct];
             };
+            FolderStructRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.FolderStructResult();
+                $.extend(true, r, data);
+                return r;
+            };
             return FolderStructRequest;
         }(BaseOperationRequest));
         Ajax.FolderStructRequest = FolderStructRequest;
@@ -620,6 +651,11 @@ var f14;
             }
             RenameRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.Rename];
+            };
+            RenameRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.RenameResult();
+                $.extend(true, r, data);
+                return r;
             };
             return RenameRequest;
         }(BaseOperationRequest));
@@ -632,34 +668,25 @@ var f14;
             UploadFileRequest.prototype.getUrl = function () {
                 return this.config.endPointUrlMap[Ajax.AjaxActionTypes.UploadFile];
             };
-            UploadFileRequest.prototype.makeAjaxData = function (url, param, callback) {
-                var _this = this;
-                var ajaxSettings = {
-                    url: url,
-                    type: 'POST',
+            UploadFileRequest.prototype.extendAjaxData = function (ajaxSettings, param) {
+                $.extend(true, ajaxSettings, {
                     cache: false,
                     contentType: false,
                     processData: false,
                     data: param.makeFormData(),
-                    dataType: 'json',
-                    beforeSend: this.config.xhrBeforeSend,
                     xhr: function () {
                         var xhr = $.ajaxSettings.xhr();
                         if (xhr.upload && param.progressChanged) {
                             xhr.upload.addEventListener('progress', param.progressChanged, false);
                         }
                         return xhr;
-                    },
-                    success: function (payload) {
-                        if (_this.config.DEBUG) {
-                            console.log(payload);
-                        }
-                        if (callback) {
-                            callback(payload);
-                        }
                     }
-                };
-                return ajaxSettings;
+                });
+            };
+            UploadFileRequest.prototype.makeResultFrom = function (data) {
+                var r = new Ajax.UploadFileResult();
+                $.extend(true, r, data);
+                return r;
             };
             return UploadFileRequest;
         }(BaseOperationRequest));
@@ -1944,7 +1971,7 @@ var f14;
                 var dstDir = this.map.GetFolderItemForPath(param.destinationDirectory);
                 var copyFile = function (file, dir) {
                     var copy = new f14.Models.FileInfo(file.name, dir);
-                    Object.assign(copy, file);
+                    $.extend(true, copy, file);
                     return copy;
                 };
                 var copyFolder = function (dir, parent) {
