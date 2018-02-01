@@ -3,7 +3,7 @@ namespace f14.Core {
     export class Configuration {
         rootFolder: string;
         xhrBeforeSend: (xhr: XMLHttpRequest) => void;
-        selectCallback: (selectedObjects: string[]) => void;
+        selectCallback: (selectedObjects: string[]) => void = (files) => { };
         actionButtons: Models.ActionButtonInfo[] = [];
         allowShortcuts: boolean = false;
         uploadFileFilter: string;
