@@ -1,0 +1,200 @@
+@import "_vars.scss";
+
+/* Fonts */
+
+@font-face {
+    font-family: "Segoe UI";
+    src: url("../fonts/segoeui.ttf");
+}
+
+@font-face {
+    font-family: "Segoe UI Semibold";
+    src: url("../fonts/seguisb.ttf");
+}
+
+@font-face {
+    font-family: "Segoe MDL2 Assets";
+    src: url("../fonts/segmdl2.ttf");
+}
+
+* {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+
+/* Base  */
+
+html,
+body,
+.ui-container {
+    height: 100%;
+}
+
+body {
+    background: #ffffff;
+    color: black;
+    margin: 0px;
+    font-family: 'Segoe UI Semibold';
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.inline {
+    display: inline !important;
+}
+
+.ui-container {
+    background-color: $backgroundColor;
+    border-top: 3px solid $toolboxBorderColor;
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    .ui-content-panel {
+        display: flex;
+        position: relative;
+        flex: 1;
+        .ui-file-struct-panel {
+            width: 100%;
+            height: 100%;
+            display: inline-block;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .ui-file-action-panel {
+            height: 100%;
+            width: 200px;
+            display: inline-block;
+            background-color: darken($backgroundColor, 10%);
+            border-right: 2px solid $toolboxBorderColor;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: all linear .2s;
+            .ui-logo-button {
+                height: 48px;
+                background-color: $toolboxBorderColor;
+                text-align: center;
+                font-size: 20px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                cursor: pointer;
+                transition: all linear .1s;
+                &>span::before {
+                    font-family: 'Segoe MDL2 Assets';
+                    content: "\E26C";
+                    font-size: 14px;
+                    margin-right: 5px;
+                }
+            }
+            .ui-logo-button:hover {
+                background-color: darken($toolboxBorderColor, 10%);
+                transition: all linear .1s;
+            }
+            .ui-action-buttons-panel {
+                display: block;
+                padding: 5px;
+            }
+        }
+        .ui-file-action-panel.collapsed {
+            width: 52px;
+            transition: all linear .2s;
+            .ui-logo-button>span::before {
+                content: "\E26B";
+            }
+            .ui-action-btn {
+                width: auto;
+                height: 32px;
+                display: block;
+                .ui-btn-icon {
+                    float: none;
+                    top: 2px;
+                }
+                .ui-btn-text {
+                    display: none;
+                }
+            }
+        }
+    }
+    .ui-file-struct-item {
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: all linear .25s;
+        .ui-item-check,
+        .ui-item-icon,
+        .ui-item-name {
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .ui-item-check {
+            cursor: pointer;
+            font-family: 'Segoe MDL2 Assets';
+            font-style: normal;
+            font-size: 16px;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            top: 1px;
+            position: relative;
+        }
+        .ui-item-check:after {
+            content: "\E739";
+        }
+    }
+    .ui-file-struct-item.checked {
+        .ui-item-check:after {
+            content: "\E73A";
+        }
+    }
+    .ui-file-struct-item:nth-child(even) {
+        background-color: darken($backgroundColor, 6%);
+    }
+    .ui-file-struct-item:nth-child(odd) {
+        background-color: darken($backgroundColor, 3%);
+    }
+    .ui-file-struct-item:hover {
+        transition: all linear .25s;
+        background-color: $hoverColor;
+        // color: white;
+    }
+}
+
+.ui-input-group {
+    display: table;
+    position: relative;
+    width: 100%;
+    .ui-input-group-item {
+        display: table-cell;
+        position: relative;
+        vertical-align: middle;
+        .ui-btn {
+            margin: 0px;
+        }
+    }
+    .ui-input-group-item.max {
+        width: 100%;
+    }
+    .ui-input-group-item.min {
+        width: 1%;
+    }
+}
+
+.text-primary {
+    color: $primary_color;
+}
+
+.text-success {
+    color: $success_color;
+}
+
+.text-danger {
+    color: $danger_color;
+}

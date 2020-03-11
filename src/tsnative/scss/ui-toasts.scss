@@ -1,0 +1,19 @@
+@import "_vars.scss";
+
+.ui-toast-container {
+    position: fixed;
+    visibility: visible;
+    min-width: 100%;
+    min-height: 70px;
+    z-index: 1002;
+    bottom: 0px;
+    padding: 10px;
+    background-color: $toast_default_bg_color;
+    border-bottom: 1px solid $toast_default_border_color;
+    color: $toast_default_color;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    .ui-toast-title {
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+}

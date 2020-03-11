@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="dist/css/styles.css" />
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+
+    <script src="node_modules/f14-l10n/dist/js/app.js"></script>
+    <script src="dist/js/app.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var settings = {
+            DEBUG: true,
+            MOCK: true,
+            rootFolder: 'C:',
+            selectCallback: function (files) { },
+            xhrBeforeSend: xhr => {
+                var token = $('input[name=__RequestVerificationToken]');
+                if (token) {
+                    xhr.setRequestHeader('RequestVerificationToken', token.val());
+                }
+            },
+            endPointUrlMap: {
+                folder_struct: 'action/folder/struct',
+                rename: 'action/rename',
+                delete: 'action/delete',
+                move: 'action/move',
+                copy: 'action/copy',
+                create_folder: 'action/create/folder',
+                upload_file: 'action/upload/file'
+            }
+        };
+
+        new FManager(settings);
+    </script>
+</body>
+
+</html>

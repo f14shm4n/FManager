@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "tsc",
+            "type": "typescript",
+            "tsconfig": "tsconfig.json",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "gulp",
+            "task": "clean",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "copy-assets",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "sass",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "ts-scripts",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "build",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "compress-js",
+            "problemMatcher": []
+        },
+        {
+            "type": "gulp",
+            "task": "compress-js-css",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,123 @@
+@import "_vars.scss";
+
+/********** Base **********/
+
+.ui-btn {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 5px;
+    position: relative;
+    display: inline-block;
+    color: inherit;
+    background-color: $btn_default_bg_color;
+    border: 1px solid $btn_default_border_color;
+    border-radius: 3px;
+    transition: all linear .1s;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-align: center;
+    font-family: segoe ui;
+    font-size: 14px;
+    line-height: 1.33;
+    white-space: nowrap;
+    vertical-align: middle;
+    .ui-btn-icon {
+        float: left;
+    }
+}
+
+.ui-btn:hover {
+    background-color: darken($btn_default_bg_color, 10%);
+    border: 1px solid darken($btn_default_border_color, 10%);
+    transition: all linear .1s;
+}
+
+.ui-btn:active {
+    background-color: darken($btn_default_bg_color, 15%);
+    border: 1px solid darken($btn_default_border_color, 15%);
+}
+
+.ui-btn.disabled {
+    background-color: darken($btn_default_bg_color, 20%);
+    border: 1px solid darken($btn_default_border_color, 20%);
+    opacity: .7;
+    pointer-events: none;
+}
+
+
+/********** Primary **********/
+
+.ui-btn.btn-primary {
+    background-color: $btn_primary_bg_color;
+    border: 1px solid $btn_primary_border_color;
+    color: white;
+}
+
+.ui-btn.btn-primary:hover {
+    background-color: darken($btn_primary_bg_color, 10%);
+    border: 1px solid darken($btn_primary_border_color, 10%);
+}
+
+.ui-btn.btn-primary:active {
+    background-color: darken($btn_primary_bg_color, 15%);
+    border: 1px solid darken($btn_primary_border_color, 15%);
+}
+
+
+/********** Iconic **********/
+
+.ui-btn.icon-transparent {
+    background-color: transparent;
+    border: none;
+    padding: 7px;
+}
+
+.ui-btn.icon-transparent:hover {
+    background-color: darken($btn_default_bg_color, 10%);
+    transition: all linear .1s;
+}
+
+.ui-btn.icon-transparent:active {
+    background-color: darken($btn_default_bg_color, 15%);
+}
+
+
+/********** File btn **********/
+
+.ui-btn.btn-file {
+    overflow: hidden;
+    input[type="file"] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        min-width: 100%;
+        min-height: 100%;
+        opacity: 0;
+        filter: alpha(opacity=0);
+        cursor: pointer;
+    }
+}
+
+
+/************ Action Buttons ************/
+
+.ui-action-btn {
+    margin: 5px 0px;
+    width: 100%;
+    color: $btn_default_color2;
+}
+
+.ui-action-btn:hover {
+    background-color: darken($btn_default_bg_color, 10%);
+    border: 1px solid darken($btn_default_border_color, 10%);
+    transition: all linear .1s;
+}
+
+.ui-action-btn:active {
+    background-color: darken($btn_default_bg_color, 15%);
+    border: 1px solid darken($btn_default_border_color, 15%);
+}
