@@ -1,0 +1,59 @@
+/* SCSS shared data */
+@import "shared/styles/_vars.scss";
+@import "shared/styles/_mixins.scss";
+
+/* Fonts */
+@font-face {
+    font-family: "Segoe UI";
+    src: url("assets/fonts/segoeui.ttf");
+}
+
+@font-face {
+    font-family: "Segoe UI Semibold";
+    src: url("assets/fonts/seguisb.ttf");
+}
+
+@font-face {
+    font-family: "Segoe MDL2 Assets";
+    src: url("assets/fonts/segmdl2.ttf");
+}
+
+* {
+    box-sizing: border-box;
+}
+
+
+/* Base  */
+html,
+body,
+app-root {
+    height: 100%;
+    font-family: 'Segoe UI Semibold';
+}
+
+body {
+    background: $white-100;
+    color: $black-100;
+    margin: 0px;
+    
+}
+
+app-root {
+    background-color: $white-100;
+    @include borderTop(3px, $bgHeader);    
+    display: flex;    
+    flex-direction: column;
+    position: relative;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.d-inline {
+    display: inline !important;
+}

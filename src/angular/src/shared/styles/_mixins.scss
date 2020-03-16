@@ -1,0 +1,15 @@
+@mixin borderTop($thickness, $color) {
+    border-top: $thickness solid $color;
+}
+
+@mixin borderBottom($thickness, $color) {
+    border-bottom: $thickness solid $color;
+}
+
+@mixin borderLeft($thickness, $color) {
+    border-left: $thickness solid $color;
+}
+
+@mixin borderRight($thickness, $color) {
+    border-right: $thickness solid $color;
+}

@@ -1,0 +1,41 @@
+$white-100: #fff;
+$black-100: #000;
+
+$bgHeader: #d8d8d8;
+
+$backgroundColor: #ffffff;
+$toolboxBgColor: #e8e8e8;
+$toolboxBorderColor: #d8d8d8;
+
+$default_color: white;
+$primary_color: #4065b5;
+$success_color: #60ff00;
+$danger_color: #ff1111;
+
+$toolboxHeight: 46px;
+
+$hoverColor: rgba(173, 173, 173, 0.54);// rgba(0, 0, 0, 0.54);
+
+$btn_default_bg_color: #e0dede;
+$btn_default_border_color: #888888;
+$btn_default_color: white;
+$btn_default_color2: black;
+
+$btn_primary_bg_color: #4065b5;
+$btn_primary_border_color: #37569a;
+
+$toast_default_bg_color: #7272ff;
+$toast_default_border_color: darken($toast_default_bg_color, 10%);
+$toast_default_color: white;
+
+$popup_container_bg_color: rgba(0, 0, 0, 0.50);
+$popup_default_bg_color: #8d8d8d;
+$popup_default_body_color: #acacac;
+$popup_default_border_color: #bfbfbf;
+$popup_errors_section_bg_color: #ff2d2d;
+
+$popup_danger_bg_color: #ff1111;
+$popup_danger_body_color: #ff3d3d;
+$popup_danger_border_color: #e00202;
+$popup_danger_errors_section_bg_color: #ff7575;
+$popup_btn_color: #ffffff;
