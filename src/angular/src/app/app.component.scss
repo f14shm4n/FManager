@@ -1,0 +1,28 @@
+/* SCSS shared data */
+@import "variables";
+@import "mixins";
+
+:host {
+    height: 100%;
+    background-color: $white-100;
+    @include borderTop(3px, $bgHeader);
+    display: flex;
+    position: relative;
+
+    .folder-view {
+        display: flex;
+        position: relative;
+        flex: 1;
+        flex-direction: row;
+
+        .fe-folder-content {
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            word-wrap: break-word;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+    }
+}
