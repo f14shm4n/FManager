@@ -14,6 +14,15 @@
     overflow-y: auto;
     transition: all linear .2s;
 
+    &.collapsed {
+        width: 52px;
+        transition: all linear .2s;
+
+        .title-button>span::before {
+            content: "\E26B";
+        }
+    }
+
     .title-button {
         user-select: none;
         height: 48px;
@@ -43,12 +52,7 @@
         }
     }
 
-    &.collapsed {
-        width: 52px;
-        transition: all linear .2s;
-
-        .title-button>span::before {
-            content: "\E26B";
-        }
+    .action-buttons {
+        padding: 5px;
     }
 }

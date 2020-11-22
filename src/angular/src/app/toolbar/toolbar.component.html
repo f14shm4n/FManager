@@ -1,3 +1,14 @@
 <div class="title-button" (click)="changeToolbarCollapseState()">
     <span><span *ngIf="!isCollapsed">File Manager</span></span>
 </div>
+<div class="action-buttons">
+    <toolbar-button text="Accept" icon="mdl2-accept" exClass="btn-primary"></toolbar-button>
+    <toolbar-button text="Upload" icon="mdl2-upload" exClass="btn-primary"></toolbar-button>
+    <toolbar-button text="Create folder" icon="mdl2-new-folder"></toolbar-button>
+    <toolbar-button text="Delete" icon="mdl2-delete"></toolbar-button>
+    <toolbar-button text="Rename" icon="mdl2-rename"></toolbar-button>
+    <toolbar-button text="Copy" icon="mdl2-copy"></toolbar-button>
+    <toolbar-button text="Move" icon="mdl2-move"></toolbar-button>
+    <toolbar-button text="Paste" icon="mdl2-paste"></toolbar-button>
+    <toolbar-button text="Select All" icon="mdl2-select-all"></toolbar-button>
+</div>

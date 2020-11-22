@@ -1,0 +1,26 @@
+/* SCSS shared data */
+@import "variables";
+@import "mixins";
+
+:host {
+    width: 100%;
+    color: $btn_default_color2;
+    margin: 5px 0;
+
+    &:hover {
+        background-color: darken($btn_default_bg_color, 10%);
+        border: 1px solid darken($btn_default_border_color, 10%);
+        transition: all linear .1s;
+    }
+
+    &:active {
+        background-color: darken($btn_default_bg_color, 15%);
+        border: 1px solid darken($btn_default_border_color, 15%);
+    }
+}
+
+:host-context(.toolbar.collapsed) {
+    .btn-text {
+        display: none;
+    }
+}
